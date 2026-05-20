@@ -8,7 +8,7 @@ client = OpenAI(
 )
 
 # TITLE
-st.title("🤖 IPER AI HR Mentor")
+st.title("🤖 ChatGHRM")
 
 st.write("Ask any HRM question")
 
