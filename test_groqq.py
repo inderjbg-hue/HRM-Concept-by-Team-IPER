@@ -52,7 +52,7 @@ client = OpenAI(
 # ---------------------------------------------------
 with st.sidebar:
 
-    st.title("🎓 IPER AI HRM Mentor")
+    st.title("🎓 ChatGMB")
 
     st.markdown("---")
 
@@ -80,7 +80,7 @@ with st.sidebar:
 # ---------------------------------------------------
 # MAIN TITLE
 # ---------------------------------------------------
-st.title("🤖 IPER AI HRM Mentor")
+st.title("🤖 ChatGBM")
 
 st.write(
     "Welcome to your AI-powered Human Resource Management Mentor. Ask any HRM, MBA, leadership, or organizational behaviour question."
