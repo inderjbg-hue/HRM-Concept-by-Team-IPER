@@ -12,6 +12,79 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
+# CORPORATE MBA THEME
+# ---------------------------------------------------
+
+st.markdown("""
+<style>
+
+/* Main App Background */
+.main {
+    background-color: #F4F6F9;
+}
+
+/* Main Title */
+h1 {
+    color: #1E3A5F;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Normal Text */
+.stMarkdown, p {
+    color: #2C3E50;
+    font-size: 16px;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #1E3A5F;
+}
+
+/* Sidebar Text */
+[data-testid="stSidebar"] * {
+    color: white;
+}
+
+/* Chat Input Box */
+.stChatInput input {
+    background-color: white;
+    border-radius: 10px;
+    border: 1px solid #B0BEC5;
+    padding: 10px;
+}
+
+/* Chat Messages */
+[data-testid="stChatMessageContent"] {
+    background-color: white;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #E0E0E0;
+}
+
+/* Buttons */
+.stButton button {
+    background-color: #1E3A5F;
+    color: white;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Footer Hide */
+footer {
+    visibility: hidden;
+}
+
+/* Top Toolbar Hide */
+header {
+    visibility: hidden;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------
 # CUSTOM CSS
 # ---------------------------------------------------
 st.markdown("""
@@ -56,22 +129,13 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.subheader("📚 HRM Learning Modules")
+    st.subheader("📚 BM Learning Modules")
+    
+st.write("""
+ChatGBM is a Generative Business Management platform powered by Artificial Intelligence, developed to enhance learning, conceptual understanding, and professional development in the field of management education.
 
-    st.write("""
-    ✅ Human Resource Management  
-    ✅ Recruitment & Selection  
-    ✅ Training & Development  
-    ✅ Performance Appraisal  
-    ✅ Compensation Management  
-    ✅ Employee Engagement  
-    ✅ Leadership  
-    ✅ Organizational Behaviour  
-    ✅ HR Analytics  
-    ✅ Talent Management  
-    ✅ Strategic HRM  
-    ✅ Industrial Relations  
-    """)
+The platform provides intelligent academic assistance across areas including Human Resource Management, Organizational Behaviour, Leadership, Strategic Management, Talent Development, Business Analytics, Recruitment, Employee Engagement, and MBA-level concept learning.
+""")
 
     st.markdown("---")
 
