@@ -136,9 +136,9 @@ ChatGBM is a Generative Business Management platform powered by Artificial Intel
 The platform provides intelligent academic assistance across areas including Human Resource Management, Organizational Behaviour, Leadership, Strategic Management, Talent Development, Business Analytics, Recruitment, Employee Engagement, and MBA-level concept learning.
 """)
 
-    st.markdown("---")
+st.markdown("---")
 
-    st.info("AI-Powered MBA HR Learning Assistant")
+st.info("AI-Powered MBA HR Learning Assistant")
 
 # ---------------------------------------------------
 # MAIN TITLE
