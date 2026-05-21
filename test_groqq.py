@@ -146,7 +146,7 @@ st.info("AI-Powered MBA HR Learning Assistant")
 st.title("🤖 ChatGBM")
 
 st.write(
-    "Welcome to your AI-powered Human Resource Management Mentor. Ask any HRM, MBA, leadership, or organizational behaviour question."
+    "Welcome to your AI-powered Education Mentor. Ask any HRM, Marketing, Finance, leadership, or organizational behaviour question."
 )
 
 # ---------------------------------------------------
@@ -184,7 +184,7 @@ if question:
         st.write(question)
 
     # Generate AI Response
-    with st.spinner("Analyzing HRM Concepts..."):
+    with st.spinner("Analyzing Business Management Concepts..."):
 
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -230,4 +230,4 @@ if question:
 # ---------------------------------------------------
 st.markdown("---")
 
-st.caption("🚀 Developed by Team IPER | Powered by AI + Streamlit + Groq")
+st.caption("🚀 Developed by Teaching Enthusiast for Learning Enthusiasts | Powered by AI + Streamlit + Groq")
