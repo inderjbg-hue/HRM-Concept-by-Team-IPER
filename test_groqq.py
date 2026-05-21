@@ -1,5 +1,6 @@
 import streamlit as st
 from openai import OpenAI
+import PyPDF2
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -150,6 +151,29 @@ st.write(
 )
 
 # ---------------------------------------------------
+# PDF DOCUMENT UPLOAD
+# ---------------------------------------------------
+uploaded_file = st.file_uploader(
+    "Upload PDF Notes or Documents",
+    type=["pdf"]
+)
+
+document_text = ""
+
+if uploaded_file is not None:
+
+    pdf_reader = PyPDF2.PdfReader(uploaded_file)
+
+    for page in pdf_reader.pages:
+
+        text = page.extract_text()
+
+        if text:
+            document_text += text
+
+    st.success("Document uploaded successfully!")
+    
+# ---------------------------------------------------
 # CHAT HISTORY
 # ---------------------------------------------------
 if "messages" not in st.session_state:
@@ -220,8 +244,22 @@ if question:
     # Store AI Response
     st.session_state.messages.append(
         {
-            "role": "assistant",
-            "content": response
+            
+    "role": "user",
+    "content": f"""
+    You are an expert Business Management and HRM mentor.
+
+    Use the uploaded document below to answer the user's question.
+
+    DOCUMENT CONTENT:
+    {document_text}
+
+    USER QUESTION:
+    {question}
+
+    Give detailed, professional and MBA-level explanations.
+    """
+
         }
     )
 
