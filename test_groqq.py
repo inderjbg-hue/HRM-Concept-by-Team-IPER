@@ -6,7 +6,7 @@ from openai import OpenAI
 # ---------------------------------------------------
 st.set_page_config(
     page_title="ChatGBM",
-    page_icon="🤖",
+    page_icon="GBM",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -124,11 +124,11 @@ client = OpenAI(
 # ---------------------------------------------------
 with st.sidebar:
 
-    st.title("🎓 ChatGMB")
+    st.title("ChatGMB")
 
     st.markdown("---")
 
-    st.subheader("📚 BM Learning Modules")
+    st.subheader("BM Learning Modules")
     
 st.write("""
 ChatGBM is a Generative Business Management platform powered by Artificial Intelligence, developed to enhance learning, conceptual understanding, and professional development in the field of management education.
@@ -143,7 +143,7 @@ st.info("AI-Powered MBA HR Learning Assistant")
 # ---------------------------------------------------
 # MAIN TITLE
 # ---------------------------------------------------
-st.title("🤖 ChatGBM")
+st.title("ChatGBM")
 
 st.write(
     "Welcome to your AI-powered Education Mentor. Ask any HRM, Marketing, Finance, leadership, or organizational behaviour question."
@@ -230,4 +230,4 @@ if question:
 # ---------------------------------------------------
 st.markdown("---")
 
-st.caption("🚀 Developed by Teaching Enthusiast for Learning Enthusiasts | Powered by AI + Streamlit + Groq")
+st.caption("Developed by Teaching Enthusiast for Learning Enthusiasts | Powered by AI + Streamlit + Groq")
