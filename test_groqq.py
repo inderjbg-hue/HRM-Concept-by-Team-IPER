@@ -144,7 +144,7 @@ st.markdown("---")
 
 st.subheader("BM Learning Modules")
 
-    module = st.selectbox(
+module = st.selectbox(
     "Select Module",
     [
         "AI Chatbot",
