@@ -158,9 +158,9 @@ if module in ["AI Chatbot", "PDF Assistant"]:
 # ---------------------------------------------------
 # MAIN TITLE
 # ---------------------------------------------------
-st.title("ChatGBM")
+    st.title("ChatGBM")
 
-st.write(
+    st.write(
     "Welcome to your AI-powered Education Mentor. Ask any HRM, Marketing, Finance, leadership, or organizational behaviour question."
 )
 
