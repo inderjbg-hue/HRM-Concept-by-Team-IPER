@@ -2,6 +2,10 @@ import streamlit as st
 from openai import OpenAI
 import PyPDF2
 
+from streamlit_webrtc import webrtc_streamer
+import av
+import cv2
+
 # ---------------------------------------------------
 # PAGE CONFIGURATION
 # ---------------------------------------------------
@@ -130,6 +134,15 @@ with st.sidebar:
     st.markdown("---")
 
     st.subheader("BM Learning Modules")
+
+    module = st.selectbox(
+    "Select Module",
+    [
+        "AI Chatbot",
+        "PDF Assistant",
+        "AI Interview Simulator"
+    ]
+)
     
 st.write("""
 ChatGBM is a Generative Business Management platform powered by Artificial Intelligence, developed to enhance learning, conceptual understanding, and professional development in the field of management education.
@@ -141,6 +154,7 @@ st.markdown("---")
 
 st.info("AI-Powered MBA HR Learning Assistant")
 
+if module in ["AI Chatbot", "PDF Assistant"]:
 # ---------------------------------------------------
 # MAIN TITLE
 # ---------------------------------------------------
@@ -262,7 +276,89 @@ if question:
 
         }
     )
+if module == "AI Interview Simulator":
 
+    st.title("AI Interview Simulator")
+
+    st.write(
+        "Practice HR, Marketing, Finance and MBA interviews using AI."
+    )
+
+    st.subheader("Live Camera")
+
+    webrtc_streamer(
+        key="camera"
+    )
+
+    role = st.selectbox(
+        "Select Interview Role",
+        [
+            "HR Executive",
+            "Marketing Executive",
+            "Finance Executive",
+            "MBA Graduate",
+            "Business Analyst"
+        ]
+    )
+
+    if st.button("Generate Interview Question"):
+
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Act as an HR interviewer."
+                },
+                {
+                    "role": "user",
+                    "content": f"Generate one interview question for {role}"
+                }
+            ]
+        )
+
+        st.session_state.interview_question = (
+            completion.choices[0].message.content
+        )
+
+    if "interview_question" in st.session_state:
+
+        st.info(st.session_state.interview_question)
+
+        answer = st.text_area(
+            "Type Your Answer"
+        )
+
+        if st.button("Evaluate Answer"):
+
+            evaluation = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """
+                        Evaluate interview responses.
+
+                        Provide:
+
+                        1. Communication Score /10
+                        2. Confidence Score /10
+                        3. Subject Knowledge Score /10
+                        4. Strengths
+                        5. Areas of Improvement
+                        6. Final Recommendation
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": answer
+                    }
+                ]
+            )
+
+            st.success(
+                evaluation.choices[0].message.content
+            )
 # ---------------------------------------------------
 # FOOTER
 # ---------------------------------------------------
