@@ -138,11 +138,11 @@ module = st.selectbox(
 
 st.write("Selected:", module)
 
-    st.title("ChatGMB")
+st.title("ChatGMB")
 
-    st.markdown("---")
+st.markdown("---")
 
-    st.subheader("BM Learning Modules")
+st.subheader("BM Learning Modules")
 
     module = st.selectbox(
     "Select Module",
