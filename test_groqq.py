@@ -82,7 +82,7 @@ footer {
 
 /* Top Toolbar Hide */
 header {
-    visibility: hidden;
+    visibility: visible;
 }
 
 </style>
@@ -128,6 +128,15 @@ client = OpenAI(
 # SIDEBAR
 # ---------------------------------------------------
 with st.sidebar:
+
+    st.write("Sidebar Loaded")
+
+module = st.selectbox(
+    "Select Module",
+    ["AI Chatbot", "AI Interview Simulator"]
+)
+
+st.write("Selected:", module)
 
     st.title("ChatGMB")
 
