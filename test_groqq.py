@@ -283,7 +283,7 @@ if module == "AI Interview Simulator":
                     st.markdown(evaluation.choices[0].message.content)
 
 # ---------------------------------------------------
-# MODULE LOGIC: AI IMAGE GENERATOR (RENDER FIX INCLUDED)
+# MODULE LOGIC: AI IMAGE GENERATOR
 # ---------------------------------------------------
 if module == "AI Image Generator":
     st.subheader("🎨 AI Creative Concept & Image Generator")
@@ -296,15 +296,4 @@ if module == "AI Image Generator":
     
     col1, col2 = st.columns(2)
     with col1:
-        aspect_ratio = st.selectbox("Select Aspect Ratio", ["1:1 (Square)", "16:9 (Widescreen)", "4:3 (Standard)"])
-    with col2:
-        enhance_prompt = st.checkbox("Automatically enhance description for professional quality", value=True)
-
-    if st.button("Generate AI Image", type="primary"):
-        if not image_prompt.strip():
-            st.warning("Please enter a text description before clicking generate.")
-        else:
-            with st.spinner("Synthesizing visual canvas matrix... Please wait."):
-                final_prompt = image_prompt
-                if enhance_prompt:
-                    final_prompt += ", professional clean corporate aesthetic, masterwork graphic illustration, highly detailed, high contrast
+        aspect_ratio = st.selectbox("Select Aspect Ratio",
