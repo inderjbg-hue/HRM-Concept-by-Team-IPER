@@ -157,18 +157,4 @@ if module in ["AI Chatbot", "PDF Assistant"]:
         "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
     )
 
-    # Document Extraction Layer
-    document_text = ""
-    if module == "PDF Assistant":
-        uploaded_file = st.file_uploader(
-            "Upload Academic Syllabus or PDF Notes",
-            type=["pdf"]
-        )
-
-        if uploaded_file is not None:
-            with st.spinner("Extracting text from PDF..."):
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        document
+    # Document
