@@ -164,12 +164,13 @@ if module in ["AI Chatbot", "PDF Assistant"]:
         )
 
         if uploaded_file is not None:
-            pdf_reader = PyPDF2.PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                text = page.extract_text()
-                if text:
-                    document_text += text
-            st.success("Target document context successfully extracted and cataloged!")
+            with st.spinner("Extracting text from PDF..."):
+                pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        document_text += text
+                st.success("Target document context successfully extracted and cataloged!")
 
     # Message Arrays Construction
     if "messages" not in st.session_state:
@@ -189,25 +190,43 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
+            # Setup a robust prompt guiding thorough responses, summaries, numerical tracking, and infographics
             system_prompt = (
-                "You are an expert Human Resource Management Professor and Executive MBA Mentor. "
-                "Your responses should be highly structured, professional, include academic definitions, "
-                "explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
+                "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.\n\n"
+                "Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:\n"
+                "1. Answer thorough questions directly from the provided source context with exact alignments.\n"
+                "2. Identify, define, and explain core academic, leadership, and operational management concepts deeply.\n"
+                "3. Create strategic summaries, clear outlines, and operational takeaways upon request.\n"
+                "4. Meticulously analyze, compute, and structure any numerical data, financial points, or metrics into structured tables.\n"
+                "5. INFOGRAPHICS AND VISUALS: If asked to build an infographic or visual blueprint, output custom text markdown layouts, formatted comparison tables, structured code-block flowcharts, or markdown badge trees to present a spectacular infographic outline within the text."
             )
             
             user_content = question
             if module == "PDF Assistant" and document_text:
-                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{document_text}\n\n[USER PROMPT]:\n{question}"
+                # SAFE TOKEN CEILING MANAGEMENT
+                # Avoid crashing Groq API on huge texts by truncating safely up to 35,000 characters
+                safe_context = document_text[:35000]
+                if len(document_text) > 35000:
+                    safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
+                
+                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
 
-            completion = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content}
-                ]
-            )
-
-            response = completion.choices[0].message.content
+            # Wrap the API call in a safe try-except block
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ]
+                )
+                response = completion.choices[0].message.content
+            except Exception as api_err:
+                response = (
+                    "⚠️ **Context Token Overhead Limit Reached:** The length of text inside this PDF context "
+                    "is too dense for immediate full prompt parsing. Please try asking a more specific question, "
+                    "or asking about a precise section or data point within the file."
+                )
 
         with st.chat_message("assistant"):
             st.write(response)
