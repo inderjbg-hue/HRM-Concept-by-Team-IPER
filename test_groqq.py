@@ -14,6 +14,18 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
+# GLOBAL STATE INITIALIZATION (FIXES VANISHING TEXT BOXES)
+# ---------------------------------------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "interview_question" not in st.session_state:
+    st.session_state.interview_question = ""
+if "interview_answer" not in st.session_state:
+    st.session_state.interview_answer = ""
+if "image_prompt_value" not in st.session_state:
+    st.session_state.image_prompt_value = ""
+
+# ---------------------------------------------------
 # PROFESSIONAL EXECUTIVE THEME (HIGH CONTRAST & VISIBILITY)
 # ---------------------------------------------------
 st.markdown("""
@@ -78,6 +90,13 @@ h2, h3, h4 {
     color: #1E40AF !important;
     font-weight: 500 !important;
     margin: 0 !important;
+}
+
+/* Text area & generic inputs structural visibility overrides */
+.stTextArea textarea, .stTextInput input {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #94A3B8 !important;
 }
 
 /* Chat Input Elements Configuration */
@@ -148,84 +167,4 @@ Organizational Performance Architecture, Leadership Theory, Talent Acquisition F
 st.markdown("---")
 
 # ---------------------------------------------------
-# MODULE LOGIC: CHATBOT & PDF CONTEXT ASSISTANT
-# ---------------------------------------------------
-if module in ["AI Chatbot", "PDF Assistant"]:
-    st.subheader(f"🛠️ Active Workspace: {module}")
-    
-    st.write(
-        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
-    )
-
-    # Document Extraction Layer
-    document_text = ""
-    if module == "PDF Assistant":
-        uploaded_file = st.file_uploader(
-            "Upload Academic Syllabus or PDF Notes",
-            type=["pdf"]
-        )
-
-        if uploaded_file is not None:
-            with st.spinner("Extracting text from PDF..."):
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        document_text += text
-                st.success("Target document context successfully extracted and cataloged!")
-
-    # Message Arrays Construction
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # UI Context Redraw
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-
-    # Input Capturing Trigger
-    question = st.chat_input("Ask an executive-level management question...")
-
-    if question:
-        st.session_state.messages.append({"role": "user", "content": question})
-        with st.chat_message("user"):
-            st.write(question)
-
-        with st.spinner("Processing deep analysis models..."):
-            # FIXED: Converted system prompt structure to proper Python triple quotes to avoid unterminated string literals
-            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.
-
-Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:
-1. Answer thorough questions directly from the provided source context with exact alignments.
-2. Identify, define, and explain core academic, leadership, and operational management concepts deeply.
-3. Create strategic summaries, clear outlines, and operational takeaways upon request.
-4. Meticulously analyze, compute, and structure any numerical data, financial points, or metrics into structured tables.
-5. INFOGRAPHICS AND VISUALS: If asked to build an infographic or visual blueprint, output custom text markdown layouts, formatted comparison tables, structured code-block flowcharts, or markdown badge trees to present a spectacular infographic outline within the text."""
-            
-            user_content = question
-            if module == "PDF Assistant" and document_text:
-                safe_context = document_text[:12000]
-                if len(document_text) > 12000:
-                    safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
-                
-                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
-
-            try:
-                completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ]
-                )
-                response = completion.choices[0].message.content
-            except Exception as api_err:
-                response = f"An API transaction issue occurred: {str(api_err)}"
-
-        with st.chat_message("assistant"):
-            st.write(response)
-        
-        st.session_state.messages.append({"role": "assistant", "content": response})
-
-# ---------------------------------------------------
-# MODULE LOGIC: STRATEGIC
+# MODULE LOGIC: CH
