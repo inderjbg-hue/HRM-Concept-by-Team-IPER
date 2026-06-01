@@ -6,7 +6,7 @@ import PyPDF2
 # PAGE CONFIGURATION
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="ChatGBM",
+    page_title="ChatGBM Workspace",
     page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -189,7 +189,11 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
-            system_prompt = "You are an expert Human Resource Management Professor and Executive MBA Mentor. Your responses should be highly structured, professional, include academic definitions, explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
+            system_prompt = (
+                "You are an expert Human Resource Management Professor and Executive MBA Mentor. "
+                "Your responses should be highly structured, professional, include academic definitions, "
+                "explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
+            )
             
             user_content = question
             if module == "PDF Assistant" and document_text:
