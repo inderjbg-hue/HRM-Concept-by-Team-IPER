@@ -6,7 +6,7 @@ import PyPDF2
 # PAGE CONFIGURATION
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="ChatGBM Workspace",
+    page_title="ChatGBM",
     page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -125,7 +125,6 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Status:** Workspace Connected ✅")
     st.markdown("**Engine:** Llama-3.1-8b-Instant")
-    st.markdown("**Upload Ceiling:** Up to 300MB Configured 📂")
 
 # ---------------------------------------------------
 # EXECUTIVE CONTAINER OVERVIEW
@@ -135,7 +134,7 @@ st.title("💼 ChatGBM Workspace")
 st.markdown("""
 <div class="executive-highlight">
     <p><strong>Generative Business Management Platform</strong><br>
-    An intelligent, high-contrast suite optimized for deep analytical context processing, document calculations, and executive training workflows.</p>
+    An intelligent, high-contrast suite optimized for core conceptual alignment across academic and organizational leadership verticals.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -153,39 +152,24 @@ if module in ["AI Chatbot", "PDF Assistant"]:
     st.subheader(f"🛠️ Active Workspace: {module}")
     
     st.write(
-        "Submit a programmatic operational challenge, raw data array, or document question directly to the executive engine below."
+        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
     )
 
-    # Initializing text tracking list in session state to handle large file volumes
-    if "pdf_paragraphs" not in st.session_state:
-        st.session_state.pdf_paragraphs = []
-
+    # Document Extraction Layer
+    document_text = ""
     if module == "PDF Assistant":
         uploaded_file = st.file_uploader(
-            "Upload Large-Scale Reports or PDF Notes",
+            "Upload Academic Syllabus or PDF Notes",
             type=["pdf"]
         )
 
         if uploaded_file is not None:
-            # Check if this file has already been loaded to prevent slowing down subsequent requests
-            if not st.session_state.pdf_paragraphs:
-                with st.spinner("Parsing multi-page document blocks... Please wait for large datasets."):
-                    pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                    paragraphs = []
-                    
-                    # Extract page by page and split text into structural blocks/paragraphs
-                    for page in pdf_reader.pages:
-                        text = page.extract_text()
-                        if text:
-                            # Divide text into blocks to avoid overloading context limits
-                            chunks = [p.strip() for p in text.split("\n\n") if p.strip()]
-                            paragraphs.extend(chunks)
-                            
-                    st.session_state.pdf_paragraphs = paragraphs
-                    st.success(f"Successfully compiled and indexed {len(paragraphs)} paragraph data segments!")
-    else:
-        # Clear parsed context when switching tabs
-        st.session_state.pdf_paragraphs = []
+            pdf_reader = PyPDF2.PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                text = page.extract_text()
+                if text:
+                    document_text += text
+            st.success("Target document context successfully extracted and cataloged!")
 
     # Message Arrays Construction
     if "messages" not in st.session_state:
@@ -197,7 +181,7 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(message["content"])
 
     # Input Capturing Trigger
-    question = st.chat_input("Ask about facts, formulas, numerical metrics, concepts, or request infographics layout...")
+    question = st.chat_input("Ask an executive-level management question...")
 
     if question:
         st.session_state.messages.append({"role": "user", "content": question})
@@ -205,51 +189,21 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
-            system_prompt = (
-                "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor. "
-                "Your objective is to thoroughly unpack documents provided by the user. "
-                "1. Thoroughly explain any questions asked from the attached text files.\n"
-                "2. Identify, define, and dissect core academic and business management concepts.\n"
-                "3. Generate highly concise, strategic executive summaries upon request.\n"
-                "4. Meticulously analyze, structure, and double-check any numerical or mathematical data present in the document text.\n"
-                "5. INFOGRAPHICS REQUESTS: If the user asks for an infographic or visual representation, generate it cleanly within the message markdown using formatted tables, code-block flowcharts, clear section badges, or comprehensive emoji-based metric trees to mock up a stunning visual structure."
-            )
+            system_prompt = "You are an expert Human Resource Management Professor and Executive MBA Mentor. Your responses should be highly structured, professional, include academic definitions, explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
             
             user_content = question
-            
-            # Smart context indexing search mechanism for heavy text files
-            if module == "PDF Assistant" and st.session_state.pdf_paragraphs:
-                # Find paragraphs containing keywords from the query
-                query_words = [w.lower() for w in question.split() if len(w) > 3]
-                matched_chunks = []
-                
-                for block in st.session_state.pdf_paragraphs:
-                    if any(word in block.lower() for word in query_words):
-                        matched_chunks.append(block)
-                    if len(matched_chunks) >= 15:  # Pull top relevant segments
-                        break
-                        
-                # Fallback to general context if keyword search yields no results
-                if not matched_chunks:
-                    matched_chunks = st.session_state.pdf_paragraphs[:12]
-                    
-                combined_context = "\n\n---\n\n".join(matched_chunks)
-                user_content = f"Use the following targeted document context reference segments to answer the question:\n\n[RELEVANT REFRESH CHUNKS]:\n{combined_context}\n\n[USER PROMPT]:\n{question}"
+            if module == "PDF Assistant" and document_text:
+                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{document_text}\n\n[USER PROMPT]:\n{question}"
 
-            try:
-                completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ]
-                )
-                response = completion.choices[0].message.content
-            except Exception as api_err:
-                response = (
-                    "⚠️ **API Transactional Threshold Reached:** The prompt payload size is still too large for the network model engine. "
-                    "Please target your query to a more specific context segment, keyword phrase, or specific numeric column variable."
-                )
+            completion = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content}
+                ]
+            )
+
+            response = completion.choices[0].message.content
 
         with st.chat_message("assistant"):
             st.write(response)
