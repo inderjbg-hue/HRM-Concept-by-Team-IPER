@@ -1,4 +1,4 @@
-code = """import streamlit as st
+import streamlit as st
 from openai import OpenAI
 import PyPDF2
 
@@ -13,100 +13,94 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
-# PROFESSIONAL EXECUTIVE THEME (CLEAN & HIGH CONTRAST)
+# PROFESSIONAL EXECUTIVE THEME (HIGH CONTRAST & VISIBILITY)
 # ---------------------------------------------------
-st.markdown(\"\"\"
+st.markdown("""
 <style>
-/* Import a highly professional corporate font */
+/* Import Inter Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Apply global font and main app background */
-.stApp {
-    font-family: 'Inter', sans-serif;
-    background-color: #F8FAFC;
+/* Apply global font settings */
+html, body, [data-testid="stAppViewContainer"] {
+    font-family: 'Inter', sans-serif !important;
 }
 
 /* --- SIDEBAR VISIBILITY FIXES --- */
 [data-testid="stSidebar"] {
-    background-color: #0F172A !important; /* Deep Navy Blue */
+    background-color: #0F172A !important; /* Premium Dark Navy */
 }
 
-/* Force high contrast white color on all text/labels inside the sidebar */
-[data-testid="stSidebar"] .stMarkdown, 
+/* Force bright contrast on all text, headers, labels inside sidebar */
+[data-testid="stSidebar"] *, 
 [data-testid="stSidebar"] p, 
 [data-testid="stSidebar"] label, 
-[data-testid="stSidebar"] span, 
-[data-testid="stSidebar"] div {
+[data-testid="stSidebar"] span {
     color: #FFFFFF !important;
 }
 
-/* Style the dropdown label inside sidebar specifically */
-[data-testid="stSidebar"] data-testid="stWidgetLabel" p {
-    color: #FFFFFF !important;
-    font-weight: 600 !important;
+/* Keep dropdown field input dark text for basic form text entry readability */
+[data-testid="stSidebar"] div[data-baseweb="select"] * {
+    color: #0F172A !important;
 }
 
 /* --- MAIN WINDOW TEXT VISIBILITY FIXES --- */
-/* Titles & Headings */
+/* Executive Indigo Blue for Titles */
 h1 {
-    color: #1E3A8A !important; /* Premium Executive Blue */
+    color: #1E3A8A !important; 
     font-weight: 700 !important;
-    font-size: 2.5rem !important;
-    letter-spacing: -0.025em;
+    font-size: 2.4rem !important;
     margin-bottom: 1rem !important;
 }
 
 h2, h3, h4 {
-    color: #0F172A !important; /* Dark Slate Blue */
+    color: #0F172A !important;
     font-weight: 600 !important;
+    margin-top: 1.5rem !important;
 }
 
-/* Body / Paragraph Text in Main Window */
+/* Body Text / Paragraphs Visibility */
 .stMarkdown p, p, li, span {
-    color: #334155 !important; /* Slate Gray (highly readable, modern alternative to pure black) */
+    color: #1E293B !important; /* Crisp Dark Charcoal Slate */
     font-size: 16px !important;
     line-height: 1.6 !important;
 }
 
-/* Highlight boxes */
-.highlight-container {
-    background-color: #EFF6FF;
-    border-left: 4px solid #3B82F6;
-    padding: 15px;
-    border-radius: 4px;
-    margin: 15px 0;
+/* Custom Executive Accent Highlight Container */
+.executive-highlight {
+    background-color: #EFF6FF !important;
+    border-left: 5px solid #2563EB !important;
+    padding: 16px !important;
+    border-radius: 6px !important;
+    margin: 18px 0 !important;
 }
-
-/* Input Boxes */
-.stChatInput input {
-    border-radius: 8px !important;
-    border: 1px solid #CBD5E1 !important;
-    color: #0F172A !important;
-}
-
-/* Chat Message Styling */
-[data-testid="stChatMessageContent"] {
-    background-color: #FFFFFF !important;
-    border-radius: 8px !important;
-    border: 1px solid #E2E8F0 !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Form Fields Context Text */
-label {
-    color: #1E293B !important;
+.executive-highlight p {
+    color: #1E40AF !important;
     font-weight: 500 !important;
+    margin: 0 !important;
 }
 
-/* Footer Hide */
+/* Chat Input Elements Configuration */
+.stChatInput input {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #94A3B8 !important;
+}
+
+/* Standardize Interactive Form Component Titles */
+label p {
+    color: #0F172A !important;
+    font-weight: 600 !important;
+}
+
+/* Hide Streamlit Native Footer */
 footer {
     visibility: hidden;
 }
 </style>
-\"\"\", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# GROQ CLIENT
+# GROQ CLIENT INITIALIZATION
 # ---------------------------------------------------
 client = OpenAI(
     api_key=st.secrets["GROQ_API_KEY"],
@@ -114,7 +108,7 @@ client = OpenAI(
 )
 
 # ---------------------------------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR SYSTEM INTERFACE
 # ---------------------------------------------------
 with st.sidebar:
     st.markdown("### 🎓 **Navigation Panel**")
@@ -129,45 +123,43 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.markdown("**Status:** System Connected ✅")
-    st.markdown("**Model:** Llama-3.1-8b-Instant")
+    st.markdown("**Status:** Workspace Connected ✅")
+    st.markdown("**Engine:** Llama-3.1-8b-Instant")
 
 # ---------------------------------------------------
-# MAIN CONTENT HEADER
+# EXECUTIVE CONTAINER OVERVIEW
 # ---------------------------------------------------
-st.title("💼 ChatGBM")
+st.title("💼 ChatGBM Workspace")
 
-# Styled Highlight Box for Intro Summary Text
-st.markdown(\"\"\"
-<div class="highlight-container">
-    <strong>Generative Business Management Platform</strong><br>
-    An advanced AI environment developed to enhance professional training, conceptual understanding, and academic expertise across key management verticals.
+st.markdown("""
+<div class="executive-highlight">
+    <p><strong>Generative Business Management Platform</strong><br>
+    An intelligent, high-contrast suite optimized for core conceptual alignment across academic and organizational leadership verticals.</p>
 </div>
-\"\"\", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-st.write(\"\"\"
-The platform delivers deep academic and conceptual simulation workflows spanning 
-Human Resource Management, Organizational Behaviour, Corporate Strategy, Business Analytics, 
-Talent Acquisition, and Leadership Development.
-\"\"\")
+st.write("""
+ChatGBM delivers targeted executive guidance spanning Human Resource Management, Strategic Frameworks, 
+Organizational Performance Architecture, Leadership Theory, Talent Acquisition Frameworks, and Core Analytics.
+""")
 
 st.markdown("---")
 
 # ---------------------------------------------------
-# WORKFLOW 1: CHATBOT & PDF ASSISTANT
+# MODULE LOGIC: CHATBOT & PDF CONTEXT ASSISTANT
 # ---------------------------------------------------
 if module in ["AI Chatbot", "PDF Assistant"]:
-    st.subheader(f"🛠️ Module Mode: {module}")
+    st.subheader(f"🛠️ Active Workspace: {module}")
     
     st.write(
-        "Engage with your AI Graduate Advisor. Ask any contextual business management, framework, or operational strategy question below."
+        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
     )
 
-    # Document upload workflow if explicitly in PDF assistant mode
+    # Document Extraction Layer
     document_text = ""
     if module == "PDF Assistant":
         uploaded_file = st.file_uploader(
-            "Upload PDF Reference Materials / Notes",
+            "Upload Academic Syllabus or PDF Notes",
             type=["pdf"]
         )
 
@@ -177,123 +169,32 @@ if module in ["AI Chatbot", "PDF Assistant"]:
                 text = page.extract_text()
                 if text:
                     document_text += text
-            st.success("Reference document context loaded successfully!")
+            st.success("Target document context successfully extracted and cataloged!")
 
-    # --- CHAT REGION ---
+    # Message Arrays Construction
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display Previous History
+    # UI Context Redraw
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # User Input Field
-    question = st.chat_input("Enter your business management query...")
+    # Input Capturing Trigger
+    question = st.chat_input("Ask an executive-level management question...")
 
     if question:
-        # Save & Render User Query
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.write(question)
 
-        # Generate Contextual Response Loop
-        with st.spinner("Analyzing executive framework models..."):
+        with st.spinner("Processing deep analysis models..."):
+            system_prompt = "You are an expert Human Resource Management Professor and Executive MBA Mentor. Your responses should be highly structured, professional, include academic definitions, explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
             
-            # Formulate the contextual framing based on file existence
-            system_prompt = """You are an expert Human Resource Management Professor and Executive MBA Mentor.
-Your responses should be highly structured, academic yet practical, include formal framework definitions, and give concrete executive examples."""
-            
-            user_prompt = question
+            user_content = question
             if module == "PDF Assistant" and document_text:
-                user_prompt = f"Use the following referenced material to answer the question.\\n\\n[DOCUMENT CONTENT]:\\n{document_text}\\n\\n[USER QUESTION]:\\n{question}"
+                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{document_text}\n\n[USER PROMPT]:\n{question}"
 
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
-
-            response = completion.choices[0].message.content
-
-        # Save & Render Agent Answer
-        with st.chat_message("assistant"):
-            st.write(response)
-        
-        st.session_state.messages.append({"role": "assistant", "content": response})
-
-# ---------------------------------------------------
-# WORKFLOW 2: INTERVIEW SIMULATOR
-# ---------------------------------------------------
-if module == "AI Interview Simulator":
-    st.subheader("🎯 Executive Performance Interview Simulator")
-    
-    st.write(
-        "Simulate full-panel enterprise or leadership recruitment tracks. Answer structural open-ended prompts to receive objective domain score matrixing."
-    )
-
-    role = st.selectbox(
-        "Target Organizational Function",
-        [
-            "HR Executive",
-            "Marketing Executive",
-            "Finance Executive",
-            "MBA Graduate",
-            "Business Analyst"
-        ]
-    )
-
-    if st.button("Generate Interview Question", type="primary"):
-        with st.spinner("Formulating behavioral indicator question..."):
-            completion = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": "You are a senior Corporate HR Director conducting a behavioral interview."},
-                    {"role": "user", "content": f"Generate one complex, situation-based interview question for a {role} role."}
-                ]
-            )
-            st.session_state.interview_question = completion.choices[0].message.content
-
-    if "interview_question" in st.session_state:
-        st.info(st.session_state.interview_question)
-
-        answer = st.text_area("Your Executive Response Input:")
-
-        if st.button("Evaluate Response Performance"):
-            if answer.strip() == "":
-                st.warning("Please type your answer response before evaluating.")
-            else:
-                with st.spinner("Matrixing core competencies..."):
-                    evaluation = client.chat.completions.create(
-                        model="llama-3.1-8b-instant",
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": \"\"\"Evaluate the candidate interview response analytically.
-Provide clear breakdown metrics for:
-1. Communication Crispness /10
-2. Professional Delivery /10
-3. Conceptual Domain Knowledge /10
-4. Core Structural Strengths
-5. Critical Improvement Items
-6. Enterprise Match Recommendation\"\"\"
-                            },
-                            {"role": "user", "content": answer}
-                        ]
-                    )
-                    st.success("Evaluation Report Generated Successfully")
-                    st.markdown(evaluation.choices[0].message.content)
-
-# ---------------------------------------------------
-# APP FOOTER
-# ---------------------------------------------------
-st.markdown("---")
-st.caption("ChatGBM Framework • Powered by AI + Streamlit + Groq Architecture")
-"""
-
-with open("test_groqq-v2.py", "w") as f:
-    f.write(code)
-
-print("Successfully generated test_groqq-v2.py")
+                messages=
