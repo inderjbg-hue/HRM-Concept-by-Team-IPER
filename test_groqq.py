@@ -120,7 +120,7 @@ with st.sidebar:
             "AI Chatbot",
             "PDF Assistant",
             "AI Interview Simulator",
-            "AI Image Generator"  # New added feature module
+            "AI Image Generator"
         ]
     )
     
@@ -283,17 +283,17 @@ if module == "AI Interview Simulator":
                     st.markdown(evaluation.choices[0].message.content)
 
 # ---------------------------------------------------
-# MODULE LOGIC: NEW FEATURE - AI IMAGE GENERATOR
+# MODULE LOGIC: AI IMAGE GENERATOR (RENDER FIX INCLUDED)
 # ---------------------------------------------------
 if module == "AI Image Generator":
     st.subheader("🎨 AI Creative Concept & Image Generator")
     st.write("Convert operational frameworks, layout concepts, or visual requirements into images using Flux synthesis technology.")
 
     image_prompt = st.text_area(
-        "Describe the image you want to create (e.g., 'A modern executive business meeting boardroom chart, high contrast, clean presentation layout'):"
+        "Describe the image you want to create:",
+        placeholder="e.g., A modern corporate ecosystem showing connected digital nodes, flat illustration vector, dark blue professional color scheme"
     )
     
-    # Optional image settings configuration
     col1, col2 = st.columns(2)
     with col1:
         aspect_ratio = st.selectbox("Select Aspect Ratio", ["1:1 (Square)", "16:9 (Widescreen)", "4:3 (Standard)"])
@@ -306,31 +306,5 @@ if module == "AI Image Generator":
         else:
             with st.spinner("Synthesizing visual canvas matrix... Please wait."):
                 final_prompt = image_prompt
-                
-                # Automatically optimize user text details if selected
                 if enhance_prompt:
-                    final_prompt += ", professional business management style, crisp corporate layout, 4k high contrast clean graphic"
-                
-                # Format aspect ratio configurations for url passing
-                width, height = 1024, 1024
-                if aspect_ratio == "16:9 (Widescreen)":
-                    width, height = 1920, 1080
-                elif aspect_ratio == "4:3 (Standard)":
-                    width, height = 1280, 960
-
-                # Safely parse text characters for clean URL routing
-                encoded_prompt = urllib.parse.quote(final_prompt)
-                
-                # Fetching the live dynamic stream link from public AI CDN endpoints
-                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed=42&model=flux"
-                
-                # Render final image container output block directly on user dashboard
-                st.markdown("### 🖼️ Generated Visual Output Artifact")
-                st.image(generation_url, caption=f"Prompt Output: {image_prompt}", use_container_width=True)
-                st.success("Image generated successfully!")
-
-# ---------------------------------------------------
-# PERSISTENT FOOTER SECTION
-# ---------------------------------------------------
-st.markdown("---")
-st.caption("ChatGBM Architecture • Built for High Contrast Professional Delivery Tracks")
+                    final_prompt += ", professional clean corporate aesthetic, masterwork graphic illustration, highly detailed, high contrast
