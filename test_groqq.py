@@ -18,7 +18,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* Import Inter Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
 
 /* Apply global font settings */
 html, body, [data-testid="stAppViewContainer"] {
@@ -197,4 +197,76 @@ if module in ["AI Chatbot", "PDF Assistant"]:
 
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content}
+                ]
+            )
+
+            response = completion.choices[0].message.content
+
+        with st.chat_message("assistant"):
+            st.write(response)
+        
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+# ---------------------------------------------------
+# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR
+# ---------------------------------------------------
+if module == "AI Interview Simulator":
+    st.subheader("🎯 Core Competency Interview Simulator")
+    
+    st.write(
+        "Practice scenario-based structural hiring sequences. Complete evaluation prompts to access analytical review matrices."
+    )
+
+    role = st.selectbox(
+        "Target Assessment Tracks",
+        [
+            "HR Executive",
+            "Marketing Executive",
+            "Finance Executive",
+            "MBA Graduate",
+            "Business Analyst"
+        ]
+    )
+
+    if st.button("Generate Diagnostic Prompt", type="primary"):
+        with st.spinner("Synthesizing specialized interview track scenarios..."):
+            completion = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": "You are a Chief Human Resources Officer conducting a leadership evaluation interview."},
+                    {"role": "user", "content": f"Generate one highly comprehensive, context-driven behavioral evaluation question for a prospective {role}."}
+                ]
+            )
+            st.session_state.interview_question = completion.choices[0].message.content
+
+    if "interview_question" in st.session_state:
+        st.info(st.session_state.interview_question)
+
+        answer = st.text_area("Provide Professional Narrative Response:")
+
+        if st.button("Analyze & Evaluate Performance"):
+            if not answer.strip():
+                st.warning("Please submit a textual response prior to analysis execution.")
+            else:
+                with st.spinner("Synthesizing quantitative score matrices..."):
+                    evaluation = client.chat.completions.create(
+                        model="llama-3.1-8b-instant",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "Evaluate the provided interview response framework strictly. Provide precise marks on: Communication Clarity /10, Domain Concept Application /10, and Analytical Delivery /10. List notable Candidate Strengths, Key Areas of Development, and a firm overall placement recommendation."
+                            },
+                            {"role": "user", "content": answer}
+                        ]
+                    )
+                    st.success("Analysis Cycle Matrix Finished")
+                    st.markdown(evaluation.choices[0].message.content)
+
+# ---------------------------------------------------
+# PERSISTENT FOOTER SECTION
+# ---------------------------------------------------
+st.markdown("---")
+st.caption("ChatGBM Architecture • Built for High Contrast Professional Delivery Tracks")
