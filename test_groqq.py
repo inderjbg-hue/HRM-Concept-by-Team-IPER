@@ -157,4 +157,43 @@ if module in ["AI Chatbot", "PDF Assistant"]:
         "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
     )
 
-    # Document
+    # Document Extraction Layer
+    document_text = ""
+    if module == "PDF Assistant":
+        uploaded_file = st.file_uploader(
+            "Upload Academic Syllabus or PDF Notes",
+            type=["pdf"]
+        )
+
+        if uploaded_file is not None:
+            with st.spinner("Extracting text from PDF..."):
+                pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        document_text += text
+                st.success("Target document context successfully extracted and cataloged!")
+
+    # Message Arrays Construction
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # UI Context Redraw
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    # Input Capturing Trigger
+    question = st.chat_input("Ask an executive-level management question...")
+
+    if question:
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.write(question)
+
+        with st.spinner("Processing deep analysis models..."):
+            system_prompt = (
+                "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.\n\n"
+                "Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:\n"
+                "1. Answer thorough questions directly from the provided source context with exact alignments.\n"
+                "2. Identify, define, and explain core academic, leadership
