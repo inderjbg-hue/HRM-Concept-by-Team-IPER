@@ -205,7 +205,7 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             if module == "PDF Assistant" and document_text:
                 # SAFE TOKEN CEILING MANAGEMENT
                 # Avoid crashing Groq API on huge texts by truncating safely up to 35,000 characters
-                safe_context = document_text[:35000]
+                safe_context = document_text[:12000]
                 if len(document_text) > 35000:
                     safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
                 
@@ -221,11 +221,8 @@ if module in ["AI Chatbot", "PDF Assistant"]:
                     ]
                 )
                 response = completion.choices[0].message.content
-            except Exception as api_err:
-                response = (
-                    "⚠️ **Context Token Overhead Limit Reached:** The length of text inside this PDF context "
-                    "is too dense for immediate full prompt parsing. Please try asking a more specific question, "
-                    "or asking about a precise section or data point within the file."
+           except Exception as api_err:
+    response = str(api_err)
                 )
 
         with st.chat_message("assistant"):
