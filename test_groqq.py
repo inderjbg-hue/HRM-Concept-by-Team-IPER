@@ -156,8 +156,10 @@ if module in ["AI Chatbot", "PDF Assistant"]:
         "Submit a programmatic operational challenge, raw data array, or document question directly to the executive engine below."
     )
 
-    # Enhanced Document Extraction Layer (Optimized safely for mega-files)
-    document_text = ""
+    # Initializing text tracking list in session state to handle large file volumes
+    if "pdf_paragraphs" not in st.session_state:
+        st.session_state.pdf_paragraphs = []
+
     if module == "PDF Assistant":
         uploaded_file = st.file_uploader(
             "Upload Large-Scale Reports or PDF Notes",
@@ -165,17 +167,25 @@ if module in ["AI Chatbot", "PDF Assistant"]:
         )
 
         if uploaded_file is not None:
-            with st.spinner("Extracting multi-page document blocks... Please wait for large datasets."):
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                total_pages = len(pdf_reader.pages)
-                
-                # Dynamic text extraction
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        document_text += text
-                        
-                st.success(f"Successfully compiled and parsed {total_pages} pages of data structure!")
+            # Check if this file has already been loaded to prevent slowing down subsequent requests
+            if not st.session_state.pdf_paragraphs:
+                with st.spinner("Parsing multi-page document blocks... Please wait for large datasets."):
+                    pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                    paragraphs = []
+                    
+                    # Extract page by page and split text into structural blocks/paragraphs
+                    for page in pdf_reader.pages:
+                        text = page.extract_text()
+                        if text:
+                            # Divide text into blocks to avoid overloading context limits
+                            chunks = [p.strip() for p in text.split("\n\n") if p.strip()]
+                            paragraphs.extend(chunks)
+                            
+                    st.session_state.pdf_paragraphs = paragraphs
+                    st.success(f"Successfully compiled and indexed {len(paragraphs)} paragraph data segments!")
+    else:
+        # Clear parsed context when switching tabs
+        st.session_state.pdf_paragraphs = []
 
     # Message Arrays Construction
     if "messages" not in st.session_state:
@@ -206,16 +216,25 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             )
             
             user_content = question
-            if module == "PDF Assistant" and document_text:
-                # SAFE TOKEN LIMITATION GAP CONTROL:
-                # Large 200MB+ texts blow past LLM limitations. We truncate the raw string context 
-                # safely up to ~40,000 characters (~10,000 words) to prevent OpenAI status crash 
-                # while retaining substantial structural reading room.
-                truncated_context = document_text[:40000]
-                if len(document_text) > 40000:
-                    truncated_context += "\n\n[Context truncated by application safety boundaries to protect API token ceiling...]"
+            
+            # Smart context indexing search mechanism for heavy text files
+            if module == "PDF Assistant" and st.session_state.pdf_paragraphs:
+                # Find paragraphs containing keywords from the query
+                query_words = [w.lower() for w in question.split() if len(w) > 3]
+                matched_chunks = []
                 
-                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{truncated_context}\n\n[USER PROMPT]:\n{question}"
+                for block in st.session_state.pdf_paragraphs:
+                    if any(word in block.lower() for word in query_words):
+                        matched_chunks.append(block)
+                    if len(matched_chunks) >= 15:  # Pull top relevant segments
+                        break
+                        
+                # Fallback to general context if keyword search yields no results
+                if not matched_chunks:
+                    matched_chunks = st.session_state.pdf_paragraphs[:12]
+                    
+                combined_context = "\n\n---\n\n".join(matched_chunks)
+                user_content = f"Use the following targeted document context reference segments to answer the question:\n\n[RELEVANT REFRESH CHUNKS]:\n{combined_context}\n\n[USER PROMPT]:\n{question}"
 
             try:
                 completion = client.chat.completions.create(
@@ -228,9 +247,8 @@ if module in ["AI Chatbot", "PDF Assistant"]:
                 response = completion.choices[0].message.content
             except Exception as api_err:
                 response = (
-                    "⚠️ **API Token Saturation Limit Encountered:** The text profile payload of this massive document "
-                    "exceeded the engine's real-time transactional thresholds. Please try refining your query to ask for "
-                    "a more specific chapter, table metric, or summary target area."
+                    "⚠️ **API Transactional Threshold Reached:** The prompt payload size is still too large for the network model engine. "
+                    "Please target your query to a more specific context segment, keyword phrase, or specific numeric column variable."
                 )
 
         with st.chat_message("assistant"):
