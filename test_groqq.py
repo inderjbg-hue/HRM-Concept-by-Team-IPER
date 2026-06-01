@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import PyPDF2
+import urllib.parse  # Used to safely encode the image prompt text into a URL
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -118,7 +119,8 @@ with st.sidebar:
         [
             "AI Chatbot",
             "PDF Assistant",
-            "AI Interview Simulator"
+            "AI Interview Simulator",
+            "AI Image Generator"  # New added feature module
         ]
     )
     
@@ -190,7 +192,6 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
-            # Setup a robust prompt guiding thorough responses, summaries, numerical tracking, and infographics
             system_prompt = (
                 "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.\n\n"
                 "Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:\n"
@@ -203,15 +204,12 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             
             user_content = question
             if module == "PDF Assistant" and document_text:
-                # SAFE TOKEN CEILING MANAGEMENT
-                # Avoid crashing Groq API on huge texts by truncating safely up to 12,000 characters
                 safe_context = document_text[:12000]
                 if len(document_text) > 12000:
                     safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
                 
                 user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
 
-            # FIXED: Indentation, string formats, and removed floating bracket syntax errors
             try:
                 completion = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
@@ -283,6 +281,53 @@ if module == "AI Interview Simulator":
                     )
                     st.success("Analysis Cycle Matrix Finished")
                     st.markdown(evaluation.choices[0].message.content)
+
+# ---------------------------------------------------
+# MODULE LOGIC: NEW FEATURE - AI IMAGE GENERATOR
+# ---------------------------------------------------
+if module == "AI Image Generator":
+    st.subheader("🎨 AI Creative Concept & Image Generator")
+    st.write("Convert operational frameworks, layout concepts, or visual requirements into images using Flux synthesis technology.")
+
+    image_prompt = st.text_area(
+        "Describe the image you want to create (e.g., 'A modern executive business meeting boardroom chart, high contrast, clean presentation layout'):"
+    )
+    
+    # Optional image settings configuration
+    col1, col2 = st.columns(2)
+    with col1:
+        aspect_ratio = st.selectbox("Select Aspect Ratio", ["1:1 (Square)", "16:9 (Widescreen)", "4:3 (Standard)"])
+    with col2:
+        enhance_prompt = st.checkbox("Automatically enhance description for professional quality", value=True)
+
+    if st.button("Generate AI Image", type="primary"):
+        if not image_prompt.strip():
+            st.warning("Please enter a text description before clicking generate.")
+        else:
+            with st.spinner("Synthesizing visual canvas matrix... Please wait."):
+                final_prompt = image_prompt
+                
+                # Automatically optimize user text details if selected
+                if enhance_prompt:
+                    final_prompt += ", professional business management style, crisp corporate layout, 4k high contrast clean graphic"
+                
+                # Format aspect ratio configurations for url passing
+                width, height = 1024, 1024
+                if aspect_ratio == "16:9 (Widescreen)":
+                    width, height = 1920, 1080
+                elif aspect_ratio == "4:3 (Standard)":
+                    width, height = 1280, 960
+
+                # Safely parse text characters for clean URL routing
+                encoded_prompt = urllib.parse.quote(final_prompt)
+                
+                # Fetching the live dynamic stream link from public AI CDN endpoints
+                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed=42&model=flux"
+                
+                # Render final image container output block directly on user dashboard
+                st.markdown("### 🖼️ Generated Visual Output Artifact")
+                st.image(generation_url, caption=f"Prompt Output: {image_prompt}", use_container_width=True)
+                st.success("Image generated successfully!")
 
 # ---------------------------------------------------
 # PERSISTENT FOOTER SECTION
