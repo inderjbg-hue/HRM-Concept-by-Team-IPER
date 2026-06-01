@@ -231,7 +231,7 @@ if module == "AI Interview Simulator":
         ]
     )
 
-    if st.button("Generate Diagnostic Prompt", type="primary"):
+    if st.button("Generate Interview Question(s)", type="primary"):
         with st.spinner("Synthesizing specialized interview track scenarios..."):
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
