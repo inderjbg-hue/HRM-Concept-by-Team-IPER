@@ -204,14 +204,14 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             user_content = question
             if module == "PDF Assistant" and document_text:
                 # SAFE TOKEN CEILING MANAGEMENT
-                # Avoid crashing Groq API on huge texts by truncating safely up to 35,000 characters
+                # Avoid crashing Groq API on huge texts by truncating safely up to 12,000 characters
                 safe_context = document_text[:12000]
-                if len(document_text) > 35000:
+                if len(document_text) > 12000:
                     safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
                 
                 user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
 
-            # Wrap the API call in a safe try-except block
+            # FIXED: Indentation, string formats, and removed floating bracket syntax errors
             try:
                 completion = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
@@ -221,9 +221,8 @@ if module in ["AI Chatbot", "PDF Assistant"]:
                     ]
                 )
                 response = completion.choices[0].message.content
-           except Exception as api_err:
-    response = str(api_err)
-                )
+            except Exception as api_err:
+                response = f"An API transaction issue occurred: {str(api_err)}"
 
         with st.chat_message("assistant"):
             st.write(response)
