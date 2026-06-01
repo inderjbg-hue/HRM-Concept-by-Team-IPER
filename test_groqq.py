@@ -2,10 +2,6 @@ import streamlit as st
 from openai import OpenAI
 import PyPDF2
 
-from streamlit_webrtc import webrtc_streamer
-import av
-import cv2
-
 # ---------------------------------------------------
 # PAGE CONFIGURATION
 # ---------------------------------------------------
@@ -128,31 +124,20 @@ client = OpenAI(
 # SIDEBAR
 # ---------------------------------------------------
 with st.sidebar:
-
     st.write("Sidebar Loaded")
-
-module = st.selectbox(
-    "Select Module",
-    ["AI Chatbot", "AI Interview Simulator"]
-)
-
-st.write("Selected:", module)
-
-st.title("ChatGMB")
-
-st.markdown("---")
-
-st.subheader("BM Learning Modules")
-
-module = st.selectbox(
-    "Select Module",
-    [
-        "AI Chatbot",
-        "PDF Assistant",
-        "AI Interview Simulator"
-    ]
-)
     
+    st.subheader("BM Learning Modules")
+    module = st.selectbox(
+        "Select Module",
+        [
+            "AI Chatbot",
+            "PDF Assistant",
+            "AI Interview Simulator"
+        ]
+    )
+
+st.title("ChatGBM")
+
 st.write("""
 ChatGBM is a Generative Business Management platform powered by Artificial Intelligence, developed to enhance learning, conceptual understanding, and professional development in the field of management education.
 
@@ -164,139 +149,111 @@ st.markdown("---")
 st.info("AI-Powered MBA HR Learning Assistant")
 
 if module in ["AI Chatbot", "PDF Assistant"]:
-# ---------------------------------------------------
-# MAIN TITLE
-# ---------------------------------------------------
+    # ---------------------------------------------------
+    # MAIN TITLE
+    # ---------------------------------------------------
     st.title("ChatGBM")
 
     st.write(
-    "Welcome to your AI-powered Education Mentor. Ask any HRM, Marketing, Finance, leadership, or organizational behaviour question."
-)
-
-# ---------------------------------------------------
-# PDF DOCUMENT UPLOAD
-# ---------------------------------------------------
-uploaded_file = st.file_uploader(
-    "Upload PDF Notes or Documents",
-    type=["pdf"]
-)
-
-document_text = ""
-
-if uploaded_file is not None:
-
-    pdf_reader = PyPDF2.PdfReader(uploaded_file)
-
-    for page in pdf_reader.pages:
-
-        text = page.extract_text()
-
-        if text:
-            document_text += text
-
-    st.success("Document uploaded successfully!")
-    
-# ---------------------------------------------------
-# CHAT HISTORY
-# ---------------------------------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display Previous Messages
-for message in st.session_state.messages:
-
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
-
-# ---------------------------------------------------
-# USER INPUT
-# ---------------------------------------------------
-question = st.chat_input("Ask Your HRM Question")
-
-# ---------------------------------------------------
-# AI RESPONSE
-# ---------------------------------------------------
-if question:
-
-    # Store User Message
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": question
-        }
+        "Welcome to your AI-powered Education Mentor. Ask any HRM, Marketing, Finance, leadership, or organizational behaviour question."
     )
 
-    # Show User Message
-    with st.chat_message("user"):
-        st.write(question)
+    # ---------------------------------------------------
+    # PDF DOCUMENT UPLOAD
+    # ---------------------------------------------------
+    uploaded_file = st.file_uploader(
+        "Upload PDF Notes or Documents",
+        type=["pdf"]
+    )
 
-    # Generate AI Response
-    with st.spinner("Analyzing Business Management Concepts..."):
+    document_text = ""
 
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """
-                    You are an expert Human Resource Management Professor and MBA Mentor.
+    if uploaded_file is not None:
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                document_text += text
+        st.success("Document uploaded successfully!")
+        
+    # ---------------------------------------------------
+    # CHAT HISTORY
+    # ---------------------------------------------------
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-                    Your responses should:
-                    - Be professional
-                    - Include definitions
-                    - Explain concepts deeply
-                    - Give practical HR insights
-                    - Include examples
-                    - Use MBA-level explanations
-                    - Be structured and educational
-                    """
-                },
-                {
-                    "role": "user",
-                    "content": question
-                }
-            ]
+    # Display Previous Messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    # ---------------------------------------------------
+    # USER INPUT
+    # ---------------------------------------------------
+    question = st.chat_input("Ask Your HRM Question")
+
+    # ---------------------------------------------------
+    # AI RESPONSE
+    # ---------------------------------------------------
+    if question:
+        # Store User Message
+        st.session_state.messages.append(
+            {
+                "role": "user",
+                "content": question
+            }
         )
 
-        response = completion.choices[0].message.content
+        # Show User Message
+        with st.chat_message("user"):
+            st.write(question)
 
-    # Show AI Response
-    with st.chat_message("assistant"):
-        st.write(response)
+        # Generate AI Response
+        with st.spinner("Analyzing Business Management Concepts..."):
+            completion = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """
+                        You are an expert Human Resource Management Professor and MBA Mentor.
 
-    # Store AI Response
-    st.session_state.messages.append(
-        {
-            
-    "role": "user",
-    "content": f"""
-    You are an expert Business Management and HRM mentor.
+                        Your responses should:
+                        - Be professional
+                        - Include definitions
+                        - Explain concepts deeply
+                        - Give practical HR insights
+                        - Include examples
+                        - Use MBA-level explanations
+                        - Be structured and educational
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": question
+                    }
+                ]
+            )
 
-    Use the uploaded document below to answer the user's question.
+            response = completion.choices[0].message.content
 
-    DOCUMENT CONTENT:
-    {document_text}
+        # Show AI Response
+        with st.chat_message("assistant"):
+            st.write(response)
 
-    USER QUESTION:
-    {question}
+        # Store AI Response
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": response
+            }
+        )
 
-    Give detailed, professional and MBA-level explanations.
-    """
-
-        }
-    )
 if module == "AI Interview Simulator":
-
     st.title("AI Interview Simulator")
 
     st.write(
         "Practice HR, Marketing, Finance and MBA interviews using AI."
-    )
-
-    st.subheader("Live Camera")
-
-    webrtc_streamer(
-        key="camera"
     )
 
     role = st.selectbox(
@@ -311,7 +268,6 @@ if module == "AI Interview Simulator":
     )
 
     if st.button("Generate Interview Question"):
-
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -331,7 +287,6 @@ if module == "AI Interview Simulator":
         )
 
     if "interview_question" in st.session_state:
-
         st.info(st.session_state.interview_question)
 
         answer = st.text_area(
@@ -339,7 +294,6 @@ if module == "AI Interview Simulator":
         )
 
         if st.button("Evaluate Answer"):
-
             evaluation = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
@@ -368,9 +322,9 @@ if module == "AI Interview Simulator":
             st.success(
                 evaluation.choices[0].message.content
             )
+
 # ---------------------------------------------------
 # FOOTER
 # ---------------------------------------------------
 st.markdown("---")
-
 st.caption("Developed by Teaching Enthusiast for Learning Enthusiasts | Powered by AI + Streamlit + Groq")
