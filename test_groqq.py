@@ -3,10 +3,16 @@ from openai import OpenAI
 import PyPDF2
 
 # ---------------------------------------------------
+# STREAMLIT GLOBAL COMPONENT OVERRIDES
+# ---------------------------------------------------
+# Force Streamlit server settings to accept files over 200MB (setting max cap to 300MB)
+st.set_option("server.maxUploadSize", 300)
+
+# ---------------------------------------------------
 # PAGE CONFIGURATION
 # ---------------------------------------------------
 st.set_page_config(
-    page_title="ChatGBM",
+    page_title="ChatGBM Workspace",
     page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -125,6 +131,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Status:** Workspace Connected ✅")
     st.markdown("**Engine:** Llama-3.1-8b-Instant")
+    st.markdown("**Upload Ceiling:** Up to 300MB Supported 📂")
 
 # ---------------------------------------------------
 # EXECUTIVE CONTAINER OVERVIEW
@@ -134,7 +141,7 @@ st.title("💼 ChatGBM Workspace")
 st.markdown("""
 <div class="executive-highlight">
     <p><strong>Generative Business Management Platform</strong><br>
-    An intelligent, high-contrast suite optimized for core conceptual alignment across academic and organizational leadership verticals.</p>
+    An intelligent, high-contrast suite optimized for deep analytical context processing, document calculations, and executive training workflows.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -152,24 +159,29 @@ if module in ["AI Chatbot", "PDF Assistant"]:
     st.subheader(f"🛠️ Active Workspace: {module}")
     
     st.write(
-        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
+        "Submit a programmatic operational challenge, raw data array, or document question directly to the executive engine below."
     )
 
-    # Document Extraction Layer
+    # Enhanced Document Extraction Layer (Supports massive corporate records up to 300MB)
     document_text = ""
     if module == "PDF Assistant":
         uploaded_file = st.file_uploader(
-            "Upload Academic Syllabus or PDF Notes",
+            "Upload Large-Scale Reports or PDF Notes (Up to 300MB)",
             type=["pdf"]
         )
 
         if uploaded_file is not None:
-            pdf_reader = PyPDF2.PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                text = page.extract_text()
-                if text:
-                    document_text += text
-            st.success("Target document context successfully extracted and cataloged!")
+            with st.spinner("Extracting multi-page document blocks... Please wait for large datasets."):
+                pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                total_pages = len(pdf_reader.pages)
+                
+                # Dynamic performance text aggregator loop
+                for i, page in enumerate(pdf_reader.pages):
+                    text = page.extract_text()
+                    if text:
+                        document_text += text
+                        
+                st.success(f"Successfully compiled and parsed {total_pages} pages of data structure!")
 
     # Message Arrays Construction
     if "messages" not in st.session_state:
@@ -181,7 +193,7 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(message["content"])
 
     # Input Capturing Trigger
-    question = st.chat_input("Ask an executive-level management question...")
+    question = st.chat_input("Ask about facts, formulas, numerical metrics, concepts, or request infographics layout...")
 
     if question:
         st.session_state.messages.append({"role": "user", "content": question})
@@ -189,7 +201,16 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
-            system_prompt = "You are an expert Human Resource Management Professor and Executive MBA Mentor. Your responses should be highly structured, professional, include academic definitions, explain concepts deeply, give practical insights, and leverage rigorous management frameworks."
+            # Master AI Prompt updated to specifically handle numerical cross-examination and infographics mockups
+            system_prompt = (
+                "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor. "
+                "Your objective is to thoroughly unpack documents provided by the user. "
+                "1. Thoroughly explain any questions asked from the attached text files.\n"
+                "2. Identify, define, and dissect core academic and business management concepts.\n"
+                "3. Generate highly concise, strategic executive summaries upon request.\n"
+                "4. Meticulously analyze, structure, and double-check any numerical or mathematical data present in the document text.\n"
+                "5. INFOGRAPHICS REQUESTS: If the user asks for an infographic or visual representation, generate it cleanly within the message markdown using formatted tables, code-block flowcharts, clear section badges, or comprehensive emoji-based metric trees to mock up a stunning visual structure."
+            )
             
             user_content = question
             if module == "PDF Assistant" and document_text:
@@ -231,7 +252,7 @@ if module == "AI Interview Simulator":
         ]
     )
 
-    if st.button("Generate Interview Question(s)", type="primary"):
+    if st.button("Generate Diagnostic Prompt", type="primary"):
         with st.spinner("Synthesizing specialized interview track scenarios..."):
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
