@@ -167,4 +167,196 @@ Organizational Performance Architecture, Leadership Theory, Talent Acquisition F
 st.markdown("---")
 
 # ---------------------------------------------------
-# MODULE LOGIC: CH
+# MODULE LOGIC: CHATBOT & PDF CONTEXT ASSISTANT
+# ---------------------------------------------------
+if module in ["AI Chatbot", "PDF Assistant"]:
+    st.subheader(f"🛠️ Active Workspace: {module}")
+    
+    st.write(
+        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
+    )
+
+    # Document Extraction Layer
+    document_text = ""
+    if module == "PDF Assistant":
+        uploaded_file = st.file_uploader(
+            "Upload Academic Syllabus or PDF Notes",
+            type=["pdf"]
+        )
+
+        if uploaded_file is not None:
+            with st.spinner("Extracting text from PDF..."):
+                pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        document_text += text
+                st.success("Target document context successfully extracted and cataloged!")
+
+    # UI Context Redraw
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    # Input Capturing Trigger
+    question = st.chat_input("Ask an executive-level management question...")
+
+    if question:
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.write(question)
+
+        with st.spinner("Processing deep analysis models..."):
+            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.
+
+Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:
+1. Answer thorough questions directly from the provided source context with exact alignments.
+2. Identify, define, and explain core academic, leadership, and operational management concepts deeply.
+3. Create strategic summaries, clear outlines, and operational takeaways upon request.
+4. Meticulously analyze, compute, and structure any numerical data, financial points, or metrics into structured tables.
+5. INFOGRAPHICS AND VISUALS: If asked to build an infographic or visual blueprint, output custom text markdown layouts, formatted comparison tables, structured code-block flowcharts, or markdown badge trees to present a spectacular infographic outline within the text."""
+            
+            user_content = question
+            if module == "PDF Assistant" and document_text:
+                safe_context = document_text[:12000]
+                if len(document_text) > 12000:
+                    safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
+                
+                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
+
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ]
+                )
+                response = completion.choices[0].message.content
+            except Exception as api_err:
+                response = f"An API transaction issue occurred: {str(api_err)}"
+
+        with st.chat_message("assistant"):
+            st.write(response)
+        
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+# ---------------------------------------------------
+# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR
+# ---------------------------------------------------
+if module == "AI Interview Simulator":
+    st.subheader("🎯 Core Competency Interview Simulator")
+    st.write("Practice scenario-based structural hiring sequences. Complete evaluation prompts to access analytical review matrices.")
+
+    role = st.selectbox(
+        "Target Assessment Tracks",
+        ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
+    )
+
+    if st.button("Generate Diagnostic Prompt", type="primary"):
+        with st.spinner("Synthesizing specialized interview track scenarios..."):
+            completion = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": "You are a Chief Human Resources Officer conducting a leadership evaluation interview."},
+                    {"role": "user", "content": f"Generate one highly comprehensive, context-driven behavioral evaluation question for a prospective {role}."}
+                ]
+            )
+            st.session_state.interview_question = completion.choices[0].message.content
+
+    # Display question if generated
+    if st.session_state.interview_question:
+        st.info(st.session_state.interview_question)
+
+    # FIXED: Replaced standard tracking with fixed state tracking key to prevent text field vanishing act
+    answer = st.text_area(
+        "Provide Professional Narrative Response:",
+        value=st.session_state.interview_answer,
+        key="persistent_interview_input"
+    )
+    st.session_state.interview_answer = answer
+
+    if st.button("Analyze & Evaluate Performance"):
+        if not st.session_state.interview_answer.strip():
+            st.warning("Please submit a textual response prior to analysis execution.")
+        else:
+            with st.spinner("Synthesizing quantitative score matrices..."):
+                evaluation = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "Evaluate the provided interview response framework strictly. Provide precise marks on: Communication Clarity /10, Domain Concept Application /10, and Analytical Delivery /10. List notable Candidate Strengths, Key Areas of Development, and a firm overall placement recommendation."
+                        },
+                        {"role": "user", "content": st.session_state.interview_answer}
+                    ]
+                )
+                st.success("Analysis Cycle Matrix Finished")
+                st.markdown(evaluation.choices[0].message.content)
+
+# ---------------------------------------------------
+# MODULE LOGIC: AI IMAGE GENERATOR
+# ---------------------------------------------------
+if module == "AI Image Generator":
+    st.subheader("🎨 AI Creative Concept & Image Generator")
+    st.write("Convert operational frameworks, layout concepts, or visual requirements into images using Flux synthesis technology.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        aspect_ratio = st.selectbox(
+            "Select Aspect Ratio Configuration", 
+            ["1:1 (Square)", "16:9 (Widescreen)", "4:3 (Standard)"]
+        )
+    with col2:
+        enhance_prompt = st.checkbox(
+            "Automatically enhance description details for professional high-contrast delivery", 
+            value=True
+        )
+
+    # FIXED: Used an explicit high-visibility text layout bar anchored with a permanent state layout key
+    prompt_input = st.text_input(
+        "Describe the image asset layout you want to create:",
+        value=st.session_state.image_prompt_value,
+        placeholder="Type a corporate theme concept, e.g., 'A modern analytics chart workflow layout, clean vector design'",
+        key="persistent_image_input"
+    )
+    st.session_state.image_prompt_value = prompt_input
+
+    if st.button("Generate AI Image Asset", type="primary"):
+        if not st.session_state.image_prompt_value.strip():
+            st.warning("Please enter a text description before clicking generate.")
+        else:
+            with st.spinner("Synthesizing visual canvas matrix... Please wait."):
+                final_prompt = st.session_state.image_prompt_value
+                if enhance_prompt:
+                    final_prompt += ", professional clean corporate aesthetic, masterwork graphic illustration, highly detailed, high contrast"
+                
+                # Configuration matrices for dimensions
+                width, height = 1024, 1024
+                if aspect_ratio == "16:9 (Widescreen)":
+                    width, height = 1920, 1080
+                elif aspect_ratio == "4:3 (Standard)":
+                    width, height = 1280, 960
+
+                # Safely parse text payload values for URL encoding
+                encoded_prompt = urllib.parse.quote(final_prompt)
+                
+                # Rendering endpoint link layer
+                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&model=flux"
+                
+                st.markdown("### 🖼️ Generated Visual Output Artifact")
+                
+                # HTML image layout wrapper
+                st.markdown(
+                    f'<div style="text-align: center; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; background: white;">'
+                    f'  <img src="{generation_url}" style="max-width: 100%; border-radius: 6px;" alt="AI Generated Graphic" />'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+                st.success("Image compiled and displayed successfully!")
+
+# ---------------------------------------------------
+# PERSISTENT FOOTER SECTION
+# ---------------------------------------------------
+st.markdown("---")
+st.caption("ChatGBM Architecture • Built for High Contrast Professional Delivery Tracks")
