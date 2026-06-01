@@ -3,12 +3,6 @@ from openai import OpenAI
 import PyPDF2
 
 # ---------------------------------------------------
-# STREAMLIT GLOBAL COMPONENT OVERRIDES
-# ---------------------------------------------------
-# Force Streamlit server settings to accept files over 200MB (setting max cap to 300MB)
-st.set_option("server.maxUploadSize", 300)
-
-# ---------------------------------------------------
 # PAGE CONFIGURATION
 # ---------------------------------------------------
 st.set_page_config(
@@ -166,7 +160,7 @@ if module in ["AI Chatbot", "PDF Assistant"]:
     document_text = ""
     if module == "PDF Assistant":
         uploaded_file = st.file_uploader(
-            "Upload Large-Scale Reports or PDF Notes (Up to 300MB)",
+            "Upload Large-Scale Reports or PDF Notes",
             type=["pdf"]
         )
 
