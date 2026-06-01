@@ -192,8 +192,40 @@ if module in ["AI Chatbot", "PDF Assistant"]:
             st.write(question)
 
         with st.spinner("Processing deep analysis models..."):
-            system_prompt = (
-                "You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.\n\n"
-                "Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:\n"
-                "1. Answer thorough questions directly from the provided source context with exact alignments.\n"
-                "2. Identify, define, and explain core academic, leadership
+            # FIXED: Converted system prompt structure to proper Python triple quotes to avoid unterminated string literals
+            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.
+
+Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:
+1. Answer thorough questions directly from the provided source context with exact alignments.
+2. Identify, define, and explain core academic, leadership, and operational management concepts deeply.
+3. Create strategic summaries, clear outlines, and operational takeaways upon request.
+4. Meticulously analyze, compute, and structure any numerical data, financial points, or metrics into structured tables.
+5. INFOGRAPHICS AND VISUALS: If asked to build an infographic or visual blueprint, output custom text markdown layouts, formatted comparison tables, structured code-block flowcharts, or markdown badge trees to present a spectacular infographic outline within the text."""
+            
+            user_content = question
+            if module == "PDF Assistant" and document_text:
+                safe_context = document_text[:12000]
+                if len(document_text) > 12000:
+                    safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
+                
+                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
+
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ]
+                )
+                response = completion.choices[0].message.content
+            except Exception as api_err:
+                response = f"An API transaction issue occurred: {str(api_err)}"
+
+        with st.chat_message("assistant"):
+            st.write(response)
+        
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+# ---------------------------------------------------
+# MODULE LOGIC: STRATEGIC
