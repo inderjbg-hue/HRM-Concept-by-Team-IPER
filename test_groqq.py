@@ -253,7 +253,7 @@ if module == "AI Interview Simulator":
         ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
     )
 
-    if st.button("Generate Diagnostic Prompt", type="primary"):
+    if st.button("Generate Interview Question", type="primary"):
         with st.spinner("Synthesizing specialized interview track scenarios..."):
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
