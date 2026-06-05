@@ -44,7 +44,7 @@ def extract_text_from_pdf(file_bytes):
     return extracted_text
 
 # ---------------------------------------------------
-# ENTERPRISE EXECUTIVE THEME DESIGN (CLEAN MULTI-LINE CSS)
+# ENTERPRISE EXECUTIVE THEME DESIGN (CLEAN CSS)
 # ---------------------------------------------------
 css_payload = """
 <style>
@@ -160,9 +160,237 @@ with st.sidebar:
 # ---------------------------------------------------
 st.title("💼 ChatGBM Workspace")
 
+# The specific section causing the truncated parenthesis error
 st.markdown("""
 <div class="executive-highlight">
     <p><strong>Generative Business Management Platform</strong><br>
     An intelligent, high-contrast suite optimized for core conceptual alignment across academic and organizational leadership verticals.</p>
 </div>
-""", unsafe
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------
+# MODULE LOGIC: INTERACTIVE MENTOR & DOCUMENT KNOWLEDGE ASSISTANT
+# ---------------------------------------------------
+if module in ["Interactive Mentor", "Document Knowledge Assistant"]:
+    st.subheader(f"🛠️ Active Workspace: {module}")
+    st.write("Submit an operational challenge or conceptual framework question directly to the executive mentor engine below.")
+
+    history_key = "chatbot_messages" if module == "Interactive Mentor" else "pdf_messages"
+    active_history = st.session_state[history_key]
+
+    document_content = ""
+    if module == "Document Knowledge Assistant":
+        uploaded_file = st.file_uploader("Upload Academic Syllabus or Reference Notes (PDF Format)", type=["pdf"])
+        if uploaded_file is not None:
+            with st.spinner("Parsing target document context..."):
+                file_bytes = uploaded_file.read()
+                document_content = extract_text_from_pdf(file_bytes)
+            if document_content.startswith("Extraction Error:"):
+                st.error(document_content)
+            else:
+                st.success("Target document context successfully extracted and compiled!")
+
+    for message in active_history:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    question = st.chat_input("Ask an executive-level management question...")
+
+    if question:
+        active_history.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.write(question)
+
+        with st.spinner("Processing analytical framework compilation..."):
+            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor."""
+            
+            user_payload = question
+            if module == "Document Knowledge Assistant" and document_content:
+                safe_context = document_content[:12000]
+                user_payload = f"Context:\n{safe_context}\n\nQuestion:\n{question}"
+
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_payload}
+                    ]
+                )
+                response = completion.choices[0].message.content
+            except Exception as api_err:
+                response = f"An issue occurred: {str(api_err)}"
+
+        with st.chat_message("assistant"):
+            st.write(response)
+        
+        active_history.append({"role": "assistant", "content": response})
+        st.session_state[history_key] = active_history
+
+# ---------------------------------------------------
+# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR (AUDIO CONTROLLED)
+# ---------------------------------------------------
+elif module == "Strategic Interview Simulator":
+    st.subheader("🎯 Core Competency Neural Audio Interview Simulator")
+    st.write("Practice real-time oral interview evaluations with high-fidelity conversational audio prompts and detailed feedback analysis.")
+
+    role = st.selectbox(
+        "Target Assessment Tracks",
+        ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
+    )
+
+    if st.button("Generate Next Interview Question", type="primary"):
+        with st.spinner("Synthesizing context-driven assessment tracks..."):
+            try:
+                st.session_state.interview_answer = ""
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": (
+                                "You are a professional corporate interviewer based in Mumbai, India. "
+                                "Formulate exactly ONE highly concise behavioral interview question. "
+                                "Use natural Indian professional language nuances where appropriate."
+                            )
+                        },
+                        {"role": "user", "content": f"Generate a creative situational interview question evaluating core competencies for a prospective {role}."}
+                    ]
+                )
+                st.session_state.interview_question = completion.choices[0].message.content
+            except Exception as e:
+                st.error(f"Error connecting to analytical models: {str(e)}")
+
+    if st.session_state.interview_question:
+        st.info(f"**Interviewer Prompt (Text View):** {st.session_state.interview_question}")
+        
+        if st.button("🔊 Listen to Question (Indian Accent)"):
+            if tts_client:
+                with st.spinner("Synthesizing human-grade audio engine..."):
+                    try:
+                        response = tts_client.audio.speech.create(
+                            model="tts-1",
+                            voice="alloy", 
+                            input=st.session_state.interview_question
+                        )
+                        audio_bytes = response.read()
+                        st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+                    except Exception as tts_err:
+                        st.error(f"Audio system exception: {str(tts_err)}")
+            else:
+                st.error("Missing 'OPENAI_API_KEY' configuration inside workspace parameters.")
+
+    st.markdown("---")
+    st.markdown("### 🎙️ Submit Your Response")
+    
+    audio_data = st.audio_input("Record your verbal answer response here")
+    if audio_data is not None:
+        st.success("Audio data successfully captured!")
+
+    st.markdown("### 📝 Response Transcript Frame")
+    answer = st.text_area(
+        "Paste speech-to-text transcript or outline your verbal answer structure parameters here:",
+        value=st.session_state.interview_answer,
+        placeholder="Type or paste your spoken answer script parameters for full structural alignment checks..."
+    )
+    st.session_state.interview_answer = answer
+
+    if st.button("Execute Performance Analysis Matrix"):
+        if not st.session_state.interview_answer.strip():
+            st.warning("Please outline your answer framework in the transcript box before compiling metrics.")
+        else:
+            with st.spinner("Analyzing performance indicators..."):
+                try:
+                    evaluation = client.chat.completions.create(
+                        model="llama-3.1-8b-instant",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "You are an expert executive assessment panel. Analyze the candidate response thoroughly. "
+                                    "You must break down your critique into explicit feedback metrics covering:\n"
+                                    "1. ANSWER RELEVANCE (Alignment with the target role and scenario questions)\n"
+                                    "2. FLUENCY & COHERENCE (Structural logic flow, vocabulary accuracy, and tone composition)\n"
+                                    "3. DOMAIN MASTERY (Use of professional terminology and actionable metrics)\n"
+                                    "Provide specific examples from their response and clear recommendations for improvement."
+                                )
+                            },
+                            {"role": "user", "content": f"Question: {st.session_state.interview_question}\nCandidate Response: {st.session_state.interview_answer}"}
+                        ]
+                    )
+                    st.success("Multi-Aspect Performance Analysis Compiled Successfully")
+                    st.markdown(evaluation.choices[0].message.content)
+                except Exception as e:
+                    st.error(f"Error compiling performance data elements: {str(e)}")
+
+# ---------------------------------------------------
+# MODULE LOGIC: EXECUTIVE VISUAL ASSET BUILDER
+# ---------------------------------------------------
+elif module == "Executive Visual Asset Builder":
+    st.subheader("🎨 Executive Visual Flowchart & Asset Builder")
+    st.write("Generate interactive, professional corporate flowcharts and strategic diagrams live using code syntax.")
+
+    st.markdown("### 🎛️ 1. Asset Configuration")
+    asset_topic = st.text_input(
+        "What sequential business model, lifecycle, or flowchart concept are you building?",
+        value="Supply Chain Optimization Flowchart",
+        placeholder="e.g., Marketing Funnel Sequence, Client Onboarding Flow, Product Lifecycle"
+    )
+
+    st.markdown("### 📝 2. Outline the Process Steps")
+    user_data = st.text_area(
+        "Describe the chronological flow or blocks you want inside your visual flowchart:",
+        value="1. Supplier Logistics ships raw parts.\n2. Inbound Warehouse sorts inventory.\n3. Quality Assurance checks metrics.\n4. If approved, route to Distribution Hub. If failed, return to Supplier.",
+        height=100
+    )
+
+    if st.button("Generate Visual Interactive Flowchart", type="primary"):
+        st.markdown("---")
+        st.markdown(f"### 📊 Rendered Flowchart Canvas: {asset_topic}")
+        
+        with st.spinner("Compiling structural chart graphics..."):
+            try:
+                system_prompt = (
+                    "You are a backend business systems architect. Convert the user's process sequence into an "
+                    "isolated, valid Mermaid.js flowchart string. Start strictly with 'graph TD' or 'graph LR'. "
+                    "Use clear uppercase text labels inside blocks. Output ONLY the raw diagram code text. Do not wrap in markdown fences or talk."
+                )
+                
+                response = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"Convert this process into a flowchart code block: {user_data}"}
+                    ]
+                )
+                
+                mermaid_code = response.choices[0].message.content.strip()
+                if "```" in mermaid_code:
+                    mermaid_code = mermaid_code.split("```")[1].replace("mermaid", "").strip()
+
+                html_canvas = f"""
+                <div style="background: white; border: 1px solid #E2E8F0; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <script type="module">
+                        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+                        mermaid.initialize({{ startOnLoad: true, theme: 'neutral' }});
+                    </script>
+                    <pre class="mermaid" style="display: flex; justify-content: center; background: white;">
+                        {mermaid_code}
+                    </pre>
+                </div>
+                """
+                
+                components.html(html_canvas, height=450, scrolling=True)
+                st.success("Vector flowchart successfully built on page!")
+                
+                with st.expander("Show Blueprint Syntax"):
+                    st.code(mermaid_code, language="markdown")
+                    
+            except Exception as e:
+                st.error(f"Error mapping interactive flowchart matrices: {str(e)}")
+
+# ---------------------------------------------------
+# PERSISTENT FOOTER SECTION
+# ---------------------------------------------------
+st.markdown("---")
+st.caption("ChatGBM Workspace Architecture • Built for High Contrast Professional Presentation Modules")
