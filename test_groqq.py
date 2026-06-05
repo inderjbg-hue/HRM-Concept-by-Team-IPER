@@ -161,7 +161,6 @@ if module in ["Interactive Mentor", "Document Knowledge Assistant"]:
             else:
                 st.success("Target document context successfully extracted and compiled!")
 
-    # Render Historical Discussion Elements Stably
     for message in active_history:
         with st.chat_message(message["role"]):
             st.write(message["content"])
@@ -243,13 +242,22 @@ elif module == "Strategic Interview Simulator":
 
     if st.session_state.interview_mode == "Live Video Presentation Mode":
         st.markdown("### 🎥 Live Executive Presentation Panel")
-        st.caption("Select 'START' to calibrate media hardware. Ensure posture alignments correspond with the bounding grid layer overlay below.")
+        
+        # Security & Infrastructure Guideline Alert Box
+        st.warning(
+            "💡 **Camera Troubleshooting:** If the video box below spins infinitely or stays black, verify that: "
+            "1) Your browser address bar begins with **HTTPS://** (security protocol requirement). "
+            "2) You have explicitly permitted camera access to this webpage."
+        )
         
         webrtc_streamer(
             key="interview-video-stream",
             mode=WebRtcMode.SENDRECV,
             rtc_configuration={
-                "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+                "iceServers": [
+                    {"urls": ["stun:stun.l.google.com:19302"]},
+                    {"urls": ["stun:stun1.l.google.com:19302"]}
+                ]
             },
             video_frame_callback=video_frame_callback,
             media_stream_constraints={"video": True, "audio": True},
@@ -329,7 +337,7 @@ elif module == "Executive Visual Asset Builder":
 
     if st.button("Synthesize Executive Visual Asset", type="primary"):
         if not st.session_state.image_prompt_value.strip():
-            st.warning("Please outline a operational business concept value before launching synthesis models.")
+            st.warning("Please outline an operational business concept value before launching synthesis models.")
         else:
             with st.spinner("Compiling structural constraints and canvas matrix layers..."):
                 constructed_prompt = (
@@ -341,15 +349,16 @@ elif module == "Executive Visual Asset Builder":
                 if "16:9" in aspect_ratio:
                     width, height = 1280, 720
 
+                # FIXED PATHWAY: Cleaned arguments, dropped unstable custom model string params causing 422/400 errors
                 encoded_prompt = urllib.parse.quote(constructed_prompt)
-                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&model=flux&nologo=true"
+                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&nologo=true"
                 
                 try:
                     response = requests.get(generation_url, timeout=45)
                     if response.status_code == 200:
                         st.session_state.current_image_bytes = response.content
                     else:
-                        st.error("The synthesis engine encountered an line asset generation error exception.")
+                        st.error(f"The synthesis engine encountered an line asset generation error exception. (Status Code: {response.status_code})")
                 except Exception as e:
                     st.error(f"Network processing transaction interruption: {str(e)}")
 
