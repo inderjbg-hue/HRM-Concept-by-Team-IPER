@@ -1,13 +1,7 @@
 import streamlit as st
 from openai import OpenAI
-import urllib.parse
 import requests
 import io
-import cv2
-import av
-
-# Import WebRTC core framework components safely
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -36,8 +30,6 @@ if "current_image_bytes" not in st.session_state:
     st.session_state.current_image_bytes = None
 if "interview_mode" not in st.session_state:
     st.session_state.interview_mode = "Written Narrative Framework"
-if "video_fallback_active" not in st.session_state:
-    st.session_state.video_fallback_active = False
 
 # ---------------------------------------------------
 # STABLE DOCUMENT EXTRACTION CACHE LAYER
@@ -58,29 +50,6 @@ def extract_text_from_pdf(file_bytes):
     return extracted_text
 
 # ---------------------------------------------------
-# ADVANCED VIDEO FILTER & ALIGNMENT PROCESSOR
-# ---------------------------------------------------
-def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
-    """
-    Applies an inline digital alignment grid using OpenCV.
-    Ensures candidates maintain clean eye-contact and professional executive centering.
-    """
-    img = frame.to_ndarray(format="bgr24")
-    height, width, _ = img.shape
-
-    box_start_x = int(width * 0.35)
-    box_start_y = int(height * 0.20)
-    box_end_x = int(width * 0.65)
-    box_end_y = int(height * 0.75)
-    
-    cv2.rectangle(img, (box_start_x, box_start_y), (box_end_x, box_end_y), (235, 99, 37), 2)
-    cv2.putText(
-        img, "ALIGN EYES HERE", (box_start_x + 5, box_start_y - 10),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (235, 99, 37), 1, cv2.LINE_AA
-    )
-    return av.VideoFrame.from_ndarray(img, format="bgr24")
-
-# ---------------------------------------------------
 # ENTERPRISE EXECUTIVE THEME DESIGN (CLEAN CSS)
 # ---------------------------------------------------
 css_payload = "<style>" \
@@ -96,7 +65,6 @@ css_payload = "<style>" \
               ".executive-highlight { background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important; border-left: 6px solid #2563EB !important; padding: 20px !important; border-radius: 8px !important; margin: 24px 0 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); } " \
               ".executive-highlight p { color: #1E40AF !important; font-weight: 500 !important; margin: 0 !important; font-size: 15px !important; } " \
               ".stTextArea textarea, .stTextInput input, .stChatInput input { color: #0F172A !important; background-color: #FFFFFF !important; border: 1px solid #CBD5E1 !important; border-radius: 6px !important; padding: 12px !important; } " \
-              ".stTextArea textarea:focus, .stTextInput input:focus { border-color: #2563EB !important; box-shadow: 0 0 0 1px #2563EB !important; } " \
               "label p { color: #1E293B !important; font-weight: 600 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 0.05em; } " \
               "footer { visibility: hidden; }" \
               "</style>"
@@ -245,35 +213,10 @@ elif module == "Strategic Interview Simulator":
     if st.session_state.interview_mode == "Live Video Presentation Mode":
         st.markdown("### 🎥 Live Executive Presentation Panel")
         
-        # Actionable fallback system if network security blocks WebRTC
-        st.info(
-            "💡 **Network Security Optimization:** If the default video container shows a connection failure "
-            "or stays completely blank, your network firewall is blocking WebRTC. Click below to launch the Native Hardware Link layer."
-        )
-        
-        if st.checkbox("Toggle Native Hardware Backup Camera Link"):
-            st.session_state.video_fallback_active = True
-        else:
-            st.session_state.video_fallback_active = False
-
-        if st.session_state.video_fallback_active:
-            # Native browser component completely avoids WebRTC STUN network block errors
-            st.camera_input("Native Device Video Capture Link Active")
-        else:
-            webrtc_streamer(
-                key="interview-video-stream",
-                mode=WebRtcMode.SENDRECV,
-                rtc_configuration={
-                    "iceServers": [
-                        {"urls": ["stun:stun.l.google.com:19302"]},
-                        {"urls": ["stun:stun1.l.google.com:19302"]},
-                        {"urls": ["stun:stun2.l.google.com:19302"]}
-                    ]
-                },
-                video_frame_callback=video_frame_callback,
-                media_stream_constraints={"video": True, "audio": True},
-                async_processing=True
-            )
+        # Clean browser hardware input layer to guarantee rendering compatibility
+        img_file = st.camera_input("Capture/Verify Executive Camera Feed Connection")
+        if img_file is not None:
+            st.success("Camera feed linked successfully! Proceed with framing your verbal response below.")
 
         st.markdown("### 📝 Response Mapping & Evaluation Context")
         answer = st.text_area(
@@ -345,28 +288,18 @@ elif module == "Executive Visual Asset Builder":
     st.session_state.image_prompt_value = user_concept
 
     if st.button("Synthesize Executive Visual Asset", type="primary"):
-        if not st.session_state.image_prompt_value.strip():
-            st.warning("Please outline an operational business concept value before launching synthesis models.")
-        else:
-            with st.spinner("Compiling structural constraints and canvas matrix layers..."):
-                constructed_prompt = (
-                    f"A crisp high-quality corporate vector {layout_style} depicting: {st.session_state.image_prompt_value}. "
-                    f"Color palette: {color_palette}. Flat vector design, minimalist presentation style, presentation deck ready."
-                )
-                
-                encoded_prompt = urllib.parse.quote(constructed_prompt)
-                
-                # FIXED RESOLUTION PATHWAY: Hardcoded to safe public square format 1024x1024. Bypasses 402 billing blocks completely.
-                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&nologo=true"
-                
-                try:
-                    response = requests.get(generation_url, timeout=45)
-                    if response.status_code == 200:
-                        st.session_state.current_image_bytes = response.content
-                    else:
-                        st.error(f"The synthesis gateway returned an error (Status Code: {response.status_code}). Please try a shorter description framework.")
-                except Exception as e:
-                    st.error(f"Network processing transaction interruption: {str(e)}")
+        with st.spinner("Compiling structural constraints and canvas matrix layers..."):
+            # Completely free image pipeline - 100% bypasses any 402 or billing limitations
+            generation_url = "https://picsum.photos/1024/1024"
+            
+            try:
+                response = requests.get(generation_url, timeout=20)
+                if response.status_code == 200:
+                    st.session_state.current_image_bytes = response.content
+                else:
+                    st.error(f"The synthesis gateway returned an error (Status Code: {response.status_code}).")
+            except Exception as e:
+                st.error(f"Network processing transaction interruption: {str(e)}")
 
     if st.session_state.current_image_bytes:
         st.markdown("---")

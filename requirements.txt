@@ -1,9 +1,4 @@
 streamlit
 openai
-PyPDF2
-streamlit
-openai
-PyPDF2
-streamlit-webrtc
-opencv-python-headless
-av
+pypdf
+requests
