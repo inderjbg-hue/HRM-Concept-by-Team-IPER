@@ -24,8 +24,8 @@ if "interview_question" not in st.session_state:
     st.session_state.interview_question = ""
 if "interview_answer" not in st.session_state:
     st.session_state.interview_answer = ""
-if "interview_mode" not in st.session_state:
-    st.session_state.interview_mode = "Written Narrative Framework"
+if "spoken_state" not in st.session_state:
+    st.session_state.spoken_state = False
 
 # ---------------------------------------------------
 # STABLE DOCUMENT EXTRACTION CACHE LAYER
@@ -168,86 +168,108 @@ Follow these operational guidelines strictly:
         st.session_state[history_key] = active_history
 
 # ---------------------------------------------------
-# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR
+# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR (AUDIO CAPABLE)
 # ---------------------------------------------------
 elif module == "Strategic Interview Simulator":
-    st.subheader("🎯 Core Competency Interview Simulator")
-    st.write("Practice scenario-based hiring sequences using written responses or live webcam evaluation presentations.")
+    st.subheader("🎯 Core Competency Audio Interview Simulator")
+    st.write("Practice real-time oral interview evaluations with verbal Indian-accent prompts and multi-aspect feedback metrics.")
 
-    col_track, col_mode = st.columns(2)
-    with col_track:
-        role = st.selectbox(
-            "Target Assessment Tracks",
-            ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
-        )
-    with col_mode:
-        st.session_state.interview_mode = st.radio(
-            "Select Response Framework",
-            ["Written Narrative Framework", "Live Video Presentation Mode"],
-            horizontal=True
-        )
+    role = st.selectbox(
+        "Target Assessment Tracks",
+        ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
+    )
 
-    if st.button("Generate Interview Assessment Scenario", type="primary"):
-        with st.spinner("Synthesizing specialized interview track scenarios..."):
+    if st.button("Generate & Speak Next Interview Question", type="primary"):
+        st.session_state.spoken_state = False
+        with st.spinner("Synthesizing context-driven assessment tracks..."):
             try:
                 completion = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
                     messages=[
-                        {"role": "system", "content": "You are a Chief Human Resources Officer conducting an executive evaluation interview."},
-                        {"role": "user", "content": f"Generate one context-driven behavioral evaluation question for a prospective {role}."}
+                        {"role": "system", "content": "You are a Chief Human Resources Officer conducting an executive evaluation interview. Ask exactly ONE concise behavioral interview question."},
+                        {"role": "user", "content": f"Generate a creative situational interview question evaluating core competencies for a prospective {role}."}
                     ]
                 )
-                st.session_state.interview_question = completion.choices[0].message.content
+                st.session_state.interview_question = completion.choices[0].message.content.replace('"', '\\"')
             except Exception as e:
                 st.error(f"Error connecting to analytical models: {str(e)}")
 
     if st.session_state.interview_question:
-        st.info(f"**Interviewer Assessment Prompt:** {st.session_state.interview_question}")
+        st.info(f"**Interviewer Prompt (Text View):** {st.session_state.interview_question}")
+        
+        # Indian Accent Web Speech Synthesis Javascript Injection Engine
+        if not st.session_state.spoken_state:
+            tts_js = f"""
+            <script>
+                function speakQuestion() {{
+                    if ('speechSynthesis' in window) {{
+                        window.speechSynthesis.cancel();
+                        var msg = new SpeechSynthesisUtterance("{st.session_state.interview_question}");
+                        var voices = window.speechSynthesis.getVoices();
+                        
+                        // Look specifically for English India regional system voice identifiers
+                        var indianVoice = voices.find(function(v) {{
+                            return v.lang.includes('en-IN') || v.name.includes('India') || v.name.includes('Indian');
+                        }});
+                        
+                        if (indianVoice) {{
+                            msg.voice = indianVoice;
+                        }}
+                        msg.rate = 0.95;
+                        msg.pitch = 1.0;
+                        window.speechSynthesis.speak(msg);
+                    }}
+                }}
+                // Execute on load and backup trigger loop if voices take a moment to bind
+                speakQuestion();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {{
+                    window.speechSynthesis.onvoiceschanged = speakQuestion;
+                }}
+            </script>
+            """
+            components.html(tts_js, height=0, width=0)
+            st.session_state.spoken_state = True
 
     st.markdown("---")
+    st.markdown("### 🎙️ Submit Your Response")
+    
+    # Clean fallback standard mic device recorder input layer
+    audio_data = st.audio_input("Record your verbal answer response here")
+    if audio_data is not None:
+        st.success("Audio data successfully captured and securely mapped to frame!")
 
-    if st.session_state.interview_mode == "Live Video Presentation Mode":
-        st.markdown("### 🎥 Live Executive Presentation Panel")
-        
-        img_file = st.camera_input("Capture/Verify Executive Camera Feed Connection")
-        if img_file is not None:
-            st.success("Camera feed linked successfully! Proceed with framing your verbal response below.")
-
-        st.markdown("### 📝 Response Mapping & Evaluation Context")
-        answer = st.text_area(
-            "Provide brief talking points or a full summary frame of your video answer for metric evaluation parsing:",
-            value=st.session_state.interview_answer,
-            key="persistent_interview_input"
-        )
-        st.session_state.interview_answer = answer
-
-    else:
-        st.markdown("### 📝 Written Narrative Framework Panel")
-        answer = st.text_area(
-            "Provide Professional Written Response Architecture:",
-            value=st.session_state.interview_answer,
-            key="persistent_interview_input",
-            placeholder="Document your comprehensive STAR-method framework response parameters here..."
-        )
-        st.session_state.interview_answer = answer
+    st.markdown("### 📝 Response Transcript Frame")
+    answer = st.text_area(
+        "Paste speech-to-text transcript or outline your verbal answer structure parameters here:",
+        value=st.session_state.interview_answer,
+        placeholder="Type or paste your spoken answer script parameters for full structural alignment checks..."
+    )
+    st.session_state.interview_answer = answer
 
     if st.button("Execute Performance Analysis Matrix"):
         if not st.session_state.interview_answer.strip():
-            st.warning("Please submit a structured text summary framework prior to running analytical matrices.")
+            st.warning("Please outline your answer framework in the transcript box before compiling metrics.")
         else:
-            with st.spinner("Analyzing performance score indicators..."):
+            with st.spinner("Analyzing performance indicators..."):
                 try:
                     evaluation = client.chat.completions.create(
                         model="llama-3.1-8b-instant",
                         messages=[
                             {
                                 "role": "system",
-                                "content": "Evaluate the interview response framework rigorously. Provide exact scoring components out of 10 for: Communication Clarity, Domain Mastery, and Executive Presence. Conclude with notable Candidate Strengths and Key Areas of Development."
+                                "content": (
+                                    "You are an expert executive assessment panel. Analyze the candidate response thoroughly. "
+                                    "You must break down your critique into explicit feedback metrics covering:\n"
+                                    "1. ANSWER RELEVANCE (Alignment with the target role and scenario questions)\n"
+                                    "2. FLUENCY & COHERENCE (Structural logic flow, vocabulary accuracy, and tone composition)\n"
+                                    "3. DOMAIN MASTERY (Use of professional terminology and actionable metrics)\n"
+                                    "Provide specific examples from their response and clear recommendations for improvement."
+                                )
                             },
-                            {"role": "user", "content": f"Question asked: {st.session_state.interview_question}\nCandidate Response: {st.session_state.interview_answer}"}
+                            {"role": "user", "content": f"Question: {st.session_state.interview_question}\nCandidate Response: {st.session_state.interview_answer}"}
                         ]
                     )
-                    st.success("Analysis Cycle Matrix Finished")
+                    st.success("Multi-Aspect Performance Analysis Compiled Successfully")
                     st.markdown(evaluation.choices[0].message.content)
                 except Exception as e:
                     st.error(f"Error compiling performance data elements: {str(e)}")
@@ -279,7 +301,6 @@ elif module == "Executive Visual Asset Builder":
         
         with st.spinner("Compiling structural chart graphics..."):
             try:
-                # Direct prompt instructing Groq to output only structural Mermaid chart markup
                 system_prompt = (
                     "You are a backend business systems architect. Convert the user's process sequence into an "
                     "isolated, valid Mermaid.js flowchart string. Start strictly with 'graph TD' or 'graph LR'. "
@@ -295,11 +316,9 @@ elif module == "Executive Visual Asset Builder":
                 )
                 
                 mermaid_code = response.choices[0].message.content.strip()
-                # Fixed string literal split syntax
                 if "```" in mermaid_code:
                     mermaid_code = mermaid_code.split("```")[1].replace("mermaid", "").strip()
 
-                # Build an isolated, secure HTML iframe payload to inject Mermaid.js CDN and draw clean canvas shapes
                 html_canvas = f"""
                 <div style="background: white; border: 1px solid #E2E8F0; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                     <script type="module">
@@ -312,9 +331,8 @@ elif module == "Executive Visual Asset Builder":
                 </div>
                 """
                 
-                # Render the responsive canvas vector graphic directly on the interface window
                 components.html(html_canvas, height=450, scrolling=True)
-                st.success("Vector flowchart successfully built on page! (Right-click chart to save as file image)")
+                st.success("Vector flowchart successfully built on page!")
                 
                 with st.expander("Show Blueprint Syntax"):
                     st.code(mermaid_code, language="markdown")
