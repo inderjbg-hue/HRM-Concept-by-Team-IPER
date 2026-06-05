@@ -2,6 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import urllib.parse
 import io
+import time
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -282,7 +283,7 @@ elif module == "Executive Visual Asset Builder":
         "What operational model or strategic theme should this asset represent visually?",
         value=st.session_state.image_prompt_value,
         key="persistent_image_input",
-        placeholder="e.g., SWOT analysis diagram layout"
+        placeholder="e.g., SWOT analysis matrix diagram layout"
     )
     st.session_state.image_prompt_value = user_concept
 
@@ -291,25 +292,35 @@ elif module == "Executive Visual Asset Builder":
             st.warning("Please outline an operational business concept value before launching synthesis models.")
         else:
             with st.spinner("Compiling structural constraints and canvas matrix layers..."):
-                # Clean prompt engineering layout for professional diagrams
+                # Engine optimized seed mapping to enforce infographic layouts
                 refined_prompt = (
-                    f"Professional business graphic infographic, {layout_style}, depicting: {st.session_state.image_prompt_value}. "
-                    f"Clean vector styling, professional corporate design, sharp structure, clear grid zones, {color_palette} color scheme, white background."
+                    f"Professional business graphic infographic chart, {layout_style}, explicitly detailing: {st.session_state.image_prompt_value}. "
+                    f"Clean corporate design, typography grids, vector layout, sharp edges, readable text, {color_palette} palette, plain solid off-white background."
                 )
                 
-                # Double URL-encode to ensure complex spaces are safely packaged
                 encoded_string = urllib.parse.quote(refined_prompt)
                 
-                # Direct real-time pipeline link. Zero backend downloads required, totally bypassing 402 blockages!
-                st.session_state.current_image_url = f"https://image.pollinations.ai/p/{encoded_string}?width=800&height=600&nologo=true"
+                # Append unique UNIX millisecond ticks to break the browser's broken caching layout loop
+                cache_breaker = int(time.time())
+                
+                # Direct public endpoint link mapping
+                st.session_state.current_image_url = f"https://image.pollinations.ai/p/{encoded_string}?width=1024&height=1024&nologo=true&seed={cache_breaker}"
 
     if st.session_state.current_image_url:
         st.markdown("---")
         st.markdown("### 🖼️ Synthesized Blueprint Output")
         
-        # Load directly via the live browser network thread
+        # Display the live image engine canvas
         st.image(st.session_state.current_image_url, use_container_width=True)
-        st.success("Visual asset blueprint compiled and anchored successfully!")
+        
+        # Failsafe Fallback Strategy: Direct download text button layout
+        st.markdown(f"""
+        <div style="text-align: center; margin-top: 15px;">
+            <p style="color: #475569; font-size: 14px;">⚠️ <strong>Visual Glitch Fallback:</strong> If your local browser is blocking the layout image above, use this direct access key:</p>
+            <a href="{st.session_state.current_image_url}" target="_blank" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; inline-block;">🔗 Open Image Blueprint in New Tab</a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.success("Visual asset blueprint target compiled successfully!")
 
 # ---------------------------------------------------
 # PERSISTENT FOOTER SECTION
