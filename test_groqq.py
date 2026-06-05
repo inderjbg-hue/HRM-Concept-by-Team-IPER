@@ -1,6 +1,6 @@
 import streamlit as st
 from openai import OpenAI
-import requests
+import urllib.parse
 import io
 
 # ---------------------------------------------------
@@ -26,8 +26,8 @@ if "interview_answer" not in st.session_state:
     st.session_state.interview_answer = ""
 if "image_prompt_value" not in st.session_state:
     st.session_state.image_prompt_value = ""
-if "current_image_bytes" not in st.session_state:
-    st.session_state.current_image_bytes = None
+if "current_image_url" not in st.session_state:
+    st.session_state.current_image_url = None
 if "interview_mode" not in st.session_state:
     st.session_state.interview_mode = "Written Narrative Framework"
 
@@ -213,7 +213,6 @@ elif module == "Strategic Interview Simulator":
     if st.session_state.interview_mode == "Live Video Presentation Mode":
         st.markdown("### 🎥 Live Executive Presentation Panel")
         
-        # Clean browser hardware input layer to guarantee rendering compatibility
         img_file = st.camera_input("Capture/Verify Executive Camera Feed Connection")
         if img_file is not None:
             st.success("Camera feed linked successfully! Proceed with framing your verbal response below.")
@@ -270,7 +269,7 @@ elif module == "Executive Visual Asset Builder":
     with col1:
         layout_style = st.selectbox(
             "Visual Blueprint Layout",
-            ["Flat Minimalist Infographic Diagram", "2x2 Strategic Matrix Grid", "Sequential Flowchart Process Map", "Clean Executive Presentation Slide Design"]
+            ["2x2 Strategic Matrix Grid", "Flat Minimalist Infographic Diagram", "Sequential Flowchart Process Map", "Clean Executive Presentation Slide Design"]
         )
     with col2:
         color_palette = st.selectbox(
@@ -283,28 +282,33 @@ elif module == "Executive Visual Asset Builder":
         "What operational model or strategic theme should this asset represent visually?",
         value=st.session_state.image_prompt_value,
         key="persistent_image_input",
-        placeholder="e.g., A 3-step modern talent pipeline outlining alignment, talent acquisition, and performance analytics grids"
+        placeholder="e.g., SWOT analysis diagram layout"
     )
     st.session_state.image_prompt_value = user_concept
 
     if st.button("Synthesize Executive Visual Asset", type="primary"):
-        with st.spinner("Compiling structural constraints and canvas matrix layers..."):
-            # Completely free image pipeline - 100% bypasses any 402 or billing limitations
-            generation_url = "https://picsum.photos/1024/1024"
-            
-            try:
-                response = requests.get(generation_url, timeout=20)
-                if response.status_code == 200:
-                    st.session_state.current_image_bytes = response.content
-                else:
-                    st.error(f"The synthesis gateway returned an error (Status Code: {response.status_code}).")
-            except Exception as e:
-                st.error(f"Network processing transaction interruption: {str(e)}")
+        if not st.session_state.image_prompt_value.strip():
+            st.warning("Please outline an operational business concept value before launching synthesis models.")
+        else:
+            with st.spinner("Compiling structural constraints and canvas matrix layers..."):
+                # Clean prompt engineering layout for professional diagrams
+                refined_prompt = (
+                    f"Professional business graphic infographic, {layout_style}, depicting: {st.session_state.image_prompt_value}. "
+                    f"Clean vector styling, professional corporate design, sharp structure, clear grid zones, {color_palette} color scheme, white background."
+                )
+                
+                # Double URL-encode to ensure complex spaces are safely packaged
+                encoded_string = urllib.parse.quote(refined_prompt)
+                
+                # Direct real-time pipeline link. Zero backend downloads required, totally bypassing 402 blockages!
+                st.session_state.current_image_url = f"https://image.pollinations.ai/p/{encoded_string}?width=800&height=600&nologo=true"
 
-    if st.session_state.current_image_bytes:
+    if st.session_state.current_image_url:
         st.markdown("---")
         st.markdown("### 🖼️ Synthesized Blueprint Output")
-        st.image(st.session_state.current_image_bytes, use_container_width=True)
+        
+        # Load directly via the live browser network thread
+        st.image(st.session_state.current_image_url, use_container_width=True)
         st.success("Visual asset blueprint compiled and anchored successfully!")
 
 # ---------------------------------------------------
