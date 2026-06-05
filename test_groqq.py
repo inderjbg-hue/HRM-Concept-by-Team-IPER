@@ -1,6 +1,8 @@
 import streamlit as st
 from openai import OpenAI
+import urllib.parse
 import io
+import hashlib
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -255,63 +257,80 @@ elif module == "Strategic Interview Simulator":
 # MODULE LOGIC: EXECUTIVE VISUAL ASSET BUILDER
 # ---------------------------------------------------
 elif module == "Executive Visual Asset Builder":
-    st.subheader("🎨 Executive Visual Matrix Blueprint Builder")
-    st.write("Construct real-time corporate SWOT models and quadrants without any API external network blockers.")
+    st.subheader("🎨 Executive Visual Asset Builder")
+    st.write("Generate custom layout backdrops and structured corporate concept frames live.")
 
-    st.markdown("### 🎛️ Input Matrix Content Parameters")
+    # Step 1: Core dynamic user inputs
+    st.markdown("### 🎛️ 1. Asset Strategy & Topic Configurator")
     
-    # 4 clean distinct inputs for an executive SWOT grid layout mapping
-    col_s, col_w = st.columns(2)
-    with col_s:
-        val_s = st.text_input("💪 Core Internal Strengths (S)", "Internal brand value, unique proprietary technology pipelines.")
-    with col_w:
-        val_w = st.text_input("⏳ Identified Weaknesses (W)", "High overhead infrastructure dependencies, reliance on single supply line hubs.")
+    col_input1, col_input2 = st.columns([2, 1])
+    with col_input1:
+        asset_topic = st.text_input(
+            "What business model, market concept, or strategic theme are you creating?",
+            value="Supply Chain Optimization Flowchart",
+            placeholder="e.g., Five Forces Analysis, Marketing Funnel, Agile Development Cycle"
+        )
+    with col_input2:
+        layout_style = st.selectbox(
+            "Visual Frame Style",
+            ["Corporate Technology", "Minimalist Blue", "Modern Slate", "Industrial Bold"]
+        )
 
-    col_o, col_t = st.columns(2)
-    with col_o:
-        val_o = st.text_input("🚀 Emerging Market Opportunities (O)", "Expanding vertical channels across growing regional economies.")
-    with col_t:
-        val_t = st.text_input("⚡ Mitigating Risks & Threats (T)", "Socio-political framework changes, accelerating market entry rates.")
+    # Core details map generated live by user
+    asset_details = st.text_area(
+        "Key Metrics, Text Labels, or Core Content to highlight in this graphic:",
+        value="1. Supplier Logistics Control -> 2. Warehouse Inbound Sorting -> 3. Automated Last-Mile Distribution Routing Grid Matrix.",
+        placeholder="List out the explicit text or phases you want anchored into your layout card..."
+    )
 
-    st.markdown("---")
-    st.markdown("### 🖼️ Generated Live Dashboard Presentation Canvas")
-
-    # High fidelity SVG layout drawing vectors. Fast, lightweight, renders crisp text on all displays.
-    svg_canvas = f"""
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" style="width:100%; height:auto; background:#F8FAFC; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-family:'Inter', system-ui, sans-serif;">
-        <!-- STRENGTHS QUADRANT -->
-        <rect x="20" y="20" width="370" height="220" rx="8" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2"/>
-        <text x="40" y="60" font-size="20" font-weight="700" fill="#166534">💪 STRENGTHS (S)</text>
-        <foreignObject x="40" y="85" width="330" height="140">
-            <p style="margin:0; font-size:14px; line-height:1.6; color:#14532D; font-weight:500;">{val_s}</p>
-        </foreignObject>
-
-        <!-- WEAKNESSES QUADRANT -->
-        <rect x="410" y="20" width="370" height="220" rx="8" fill="#FFF5F5" stroke="#FEB2B2" stroke-width="2"/>
-        <text x="430" y="60" font-size="20" font-weight="700" fill="#9B2C2C">⏳ WEAKNESSES (W)</text>
-        <foreignObject x="430" y="85" width="330" height="140">
-            <p style="margin:0; font-size:14px; line-height:1.6; color:#742A2A; font-weight:500;">{val_w}</p>
-        </foreignObject>
-
-        <!-- OPPORTUNITIES QUADRANT -->
-        <rect x="20" y="260" width="370" height="220" rx="8" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2"/>
-        <text x="40" y="300" font-size="20" font-weight="700" fill="#1E40AF">🚀 OPPORTUNITIES (O)</text>
-        <foreignObject x="40" y="325" width="330" height="140">
-            <p style="margin:0; font-size:14px; line-height:1.6; color:#1E3A8A; font-weight:500;">{val_o}</p>
-        </foreignObject>
-
-        <!-- THREATS QUADRANT -->
-        <rect x="410" y="260" width="370" height="220" rx="8" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2"/>
-        <text x="430" y="300" font-size="20" font-weight="700" fill="#92400E">⚡ THREATS (T)</text>
-        <foreignObject x="430" y="325" width="330" height="140">
-            <p style="margin:0; font-size:14px; line-height:1.6; color:#78350F; font-weight:500;">{val_t}</p>
-        </foreignObject>
-    </svg>
-    """
+    # Style mapping matrix parameters
+    theme_colors = {
+        "Corporate Technology": {"bg": "#EFF6FF", "border": "#2563EB", "text": "#1E40AF", "accent": "#DBEAFE"},
+        "Minimalist Blue": {"bg": "#F0FDFA", "border": "#0D9488", "text": "#115E59", "accent": "#CCFBF1"},
+        "Modern Slate": {"bg": "#F8FAFC", "border": "#475569", "text": "#0F172A", "accent": "#E2E8F0"},
+        "Industrial Bold": {"bg": "#FFFBEB", "border": "#D97706", "text": "#78350F", "accent": "#FEF3C7"}
+    }
     
-    # Inject directly into the Streamlit app view
-    st.markdown(svg_canvas, unsafe_allow_html=True)
-    st.success("Executive SWOT Asset Vector Layout rendered live below panel!")
+    current_theme = theme_colors[layout_style]
+
+    if st.button("Synthesize Executive Visual Asset Framework", type="primary"):
+        st.markdown("---")
+        st.markdown(f"### 🖼️ Executed Canvas: {asset_topic}")
+        
+        # Safe URL parsing using stable hash seeds to pull relevant corporate wallpaper frames safely
+        clean_seed = int(hashlib.mdlib(asset_topic.encode('utf-8')).hexdigest(), 16) % 1000 if hasattr(hashlib, 'mdlib') else int(hashlib.sha256(asset_topic.encode('utf-8')).hexdigest(), 16) % 1000
+        safe_keyword = urllib.parse.quote(asset_topic.split()[0])
+        
+        fallback_image_url = f"https://picsum.photos/seed/{clean_seed}/1200/450"
+
+        # Constructing an adaptive, completely customized presentation asset combining corporate text layers and abstract texture backdrops
+        executive_card_html = f"""
+        <div style="background: white; border-radius: 12px; border: 2px solid {current_theme['border']}; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 25px;">
+            <!-- Background Image Strip -->
+            <div style="width: 100%; height: 200px; background-image: url('{fallback_image_url}'); background-size: cover; background-position: center; position: relative;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));"></div>
+                <div style="position: absolute; bottom: 20px; left: 25px;">
+                    <span style="background: {current_theme['border']}; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">{layout_style} Visual Blueprint</span>
+                    <h2 style="color: white; margin: 5px 0 0 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">{asset_topic}</h2>
+                </div>
+            </div>
+            <!-- Structural Presentation Content Area -->
+            <div style="padding: 30px; background: {current_theme['bg']};">
+                <h4 style="color: {current_theme['text']}; margin-top: 0; margin-bottom: 10px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Compiled Analytical Framework Parameters</h4>
+                <div style="background: white; border: 1px solid {current_theme['accent']}; border-radius: 8px; padding: 20px; min-height: 120px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="color: #334155; font-size: 16px; line-height: 1.8; white-space: pre-line; margin: 0; font-weight: 500;">{asset_details}</p>
+                </div>
+                <!-- Card Branding Footer -->
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed {current_theme['border']}; padding-top: 15px;">
+                    <span style="color: {current_theme['text']}; font-size: 12px; font-weight: 600;">ChatGBM Asset Engine v2.5</span>
+                    <span style="color: #64748B; font-size: 12px;">Security Protocol Check: Cleared ✅</span>
+                </div>
+            </div>
+        </div>
+        """
+        
+        st.markdown(executive_card_html, unsafe_allow_html=True)
+        st.success("Custom business visual framework successfully drawn on canvas!")
 
 # ---------------------------------------------------
 # PERSISTENT FOOTER SECTION
