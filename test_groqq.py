@@ -1,7 +1,13 @@
 import streamlit as st
 from openai import OpenAI
-import PyPDF2
-import urllib.parse  # Used to safely encode the image prompt text into a URL
+import urllib.parse
+import requests
+import io
+import cv2
+import av
+
+# Import WebRTC core framework components safely
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -14,105 +20,165 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------
-# GLOBAL STATE INITIALIZATION (FIXES VANISHING TEXT BOXES)
+# GLOBAL STATE INITIALIZATION
 # ---------------------------------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+if "chatbot_messages" not in st.session_state:
+    st.session_state.chatbot_messages = []
+if "pdf_messages" not in st.session_state:
+    st.session_state.pdf_messages = []
 if "interview_question" not in st.session_state:
     st.session_state.interview_question = ""
 if "interview_answer" not in st.session_state:
     st.session_state.interview_answer = ""
 if "image_prompt_value" not in st.session_state:
     st.session_state.image_prompt_value = ""
+if "current_image_bytes" not in st.session_state:
+    st.session_state.current_image_bytes = None
+if "interview_mode" not in st.session_state:
+    st.session_state.interview_mode = "Written Narrative Framework"
 
 # ---------------------------------------------------
-# PROFESSIONAL EXECUTIVE THEME (HIGH CONTRAST & VISIBILITY)
+# STABLE DOCUMENT EXTRACTION CACHE LAYER
+# ---------------------------------------------------
+@st.cache_data(show_spinner=False)
+def extract_text_from_pdf(file_bytes):
+    import pypdf
+    extracted_text = ""
+    try:
+        pdf_stream = io.BytesIO(file_bytes)
+        pdf_reader = pypdf.PdfReader(pdf_stream)
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                extracted_text += text
+    except Exception as e:
+        return f"Extraction Error: {str(e)}"
+    return extracted_text
+
+# ---------------------------------------------------
+# ADVANCED VIDEO FILTER & ALIGNMENT PROCESSOR
+# ---------------------------------------------------
+def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
+    """
+    Applies an inline digital alignment grid using OpenCV.
+    Ensures candidates maintain clean eye-contact and professional executive centering.
+    """
+    img = frame.to_ndarray(format="bgr24")
+    height, width, _ = img.shape
+
+    # Centering framework parameters (Golden Ratio alignment metrics)
+    box_start_x = int(width * 0.35)
+    box_start_y = int(height * 0.20)
+    box_end_x = int(width * 0.65)
+    box_end_y = int(height * 0.75)
+    
+    # Render a professional corporate blue framing boundary layout overlay
+    cv2.rectangle(img, (box_start_x, box_start_y), (box_end_x, box_end_y), (235, 99, 37), 2)
+    
+    cv2.putText(
+        img, "ALIGN EYES HERE", (box_start_x + 5, box_start_y - 10),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (235, 99, 37), 1, cv2.LINE_AA
+    )
+
+    return av.VideoFrame.from_ndarray(img, format="bgr24")
+
+# ---------------------------------------------------
+# ENTERPRISE EXECUTIVE THEME DESIGN (CUSTOM CSS STYLE)
 # ---------------------------------------------------
 st.markdown("""
 <style>
-/* Import Inter Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+/* Import Clean Professional Inter Typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Apply global font settings */
-html, body, [data-testid="stAppViewContainer"] {
+/* Global Font Override */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
     font-family: 'Inter', sans-serif !important;
+    background-color: #F8FAFC !important; /* Premium Off-White Slate */
 }
 
-/* --- SIDEBAR VISIBILITY FIXES --- */
+/* --- SIDEBAR VISIBILITY & CONTRAST CONFIGURATION --- */
 [data-testid="stSidebar"] {
-    background-color: #0F172A !important; /* Premium Dark Navy */
+    background-color: #0F172A !important; /* Deep Slate Blue Navy */
+    border-right: 1px solid #1E293B !important;
 }
-
-/* Force bright contrast on all text, headers, labels inside sidebar */
 [data-testid="stSidebar"] *, 
 [data-testid="stSidebar"] p, 
 [data-testid="stSidebar"] label, 
 [data-testid="stSidebar"] span {
+    color: #F1F5F9 !important; /* Soft Ice White Text */
+    font-size: 14px;
+}
+[data-testid="stSidebar"] h3 strong {
     color: #FFFFFF !important;
+    font-size: 18px !important;
 }
-
-/* Keep dropdown field input dark text for basic form text entry readability */
 [data-testid="stSidebar"] div[data-baseweb="select"] * {
-    color: #0F172A !important;
+    color: #0F172A !important; /* Force Dropdown Menu Font Visibility */
+    font-weight: 500;
 }
 
-/* --- MAIN WINDOW TEXT VISIBILITY FIXES --- */
-/* Executive Indigo Blue for Titles */
+/* --- MAIN CANVAS TYPOGRAPHY & LAYOUT HIERARCHY --- */
 h1 {
-    color: #1E3A8A !important; 
+    color: #1E3A8A !important; /* Corporate Navy Indigo */
     font-weight: 700 !important;
-    font-size: 2.4rem !important;
-    margin-bottom: 1rem !important;
+    font-size: 2.6rem !important;
+    letter-spacing: -0.03em !important;
+    margin-bottom: 0.5rem !important;
 }
-
 h2, h3, h4 {
-    color: #0F172A !important;
+    color: #0F172A !important; /* Crisp Midnight Slate */
     font-weight: 600 !important;
-    margin-top: 1.5rem !important;
+    letter-spacing: -0.01em !important;
+    margin-top: 1.8rem !important;
+    margin-bottom: 0.8rem !important;
 }
 
-/* Body Text / Paragraphs Visibility */
-.stMarkdown p, p, li, span {
-    color: #1E293B !important; /* Crisp Dark Charcoal Slate */
-    font-size: 16px !important;
-    line-height: 1.6 !important;
+/* Isolated text paragraph overrides to protect system notices */
+.stMarkdown-container p, .stMarkdown-container li {
+    color: #334155 !important; /* Muted Charcoal Slate Body Text */
+    font-size: 15px !important;
+    line-height: 1.7 !important;
 }
 
-/* Custom Executive Accent Highlight Container */
+/* Premium Executive Structural Highlight Accent Container */
 .executive-highlight {
-    background-color: #EFF6FF !important;
-    border-left: 5px solid #2563EB !important;
-    padding: 16px !important;
-    border-radius: 6px !important;
-    margin: 18px 0 !important;
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+    border-left: 6px solid #2563EB !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    margin: 24px 0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 .executive-highlight p {
-    color: #1E40AF !important;
+    color: #1E40AF !important; /* Soft Sapphire Blue */
     font-weight: 500 !important;
     margin: 0 !important;
+    font-size: 15px !important;
 }
 
-/* Text area & generic inputs structural visibility overrides */
-.stTextArea textarea, .stTextInput input {
+/* Interactive Input Elements Framework */
+.stTextArea textarea, .stTextInput input, .stChatInput input {
     color: #0F172A !important;
     background-color: #FFFFFF !important;
-    border: 1px solid #94A3B8 !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 6px !important;
+    padding: 12px !important;
+}
+.stTextArea textarea:focus, .stTextInput input:focus {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 1px #2563EB !important;
 }
 
-/* Chat Input Elements Configuration */
-.stChatInput input {
-    color: #0F172A !important;
-    background-color: #FFFFFF !important;
-    border: 1px solid #94A3B8 !important;
-}
-
-/* Standardize Interactive Form Component Titles */
+/* Standard Form Label Optimization */
 label p {
-    color: #0F172A !important;
+    color: #1E293B !important;
     font-weight: 600 !important;
+    font-size: 14px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* Hide Streamlit Native Footer */
+/* Hide Native Branding Footers cleanly */
 footer {
     visibility: hidden;
 }
@@ -120,7 +186,7 @@ footer {
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# GROQ CLIENT INITIALIZATION
+# CORE BACKEND ENGINE INITIALIZATION
 # ---------------------------------------------------
 client = OpenAI(
     api_key=st.secrets["GROQ_API_KEY"],
@@ -132,20 +198,18 @@ client = OpenAI(
 # ---------------------------------------------------
 with st.sidebar:
     st.markdown("### 🎓 **Navigation Panel**")
-    
     module = st.selectbox(
-        "Select Learning Module",
+        "Select Functional Module",
         [
-            "AI Chatbot",
-            "PDF Assistant",
-            "AI Interview Simulator",
-            "AI Image Generator"
+            "Interactive Mentor",
+            "Document Knowledge Assistant",
+            "Strategic Interview Simulator",
+            "Executive Visual Asset Builder"
         ]
     )
-    
     st.markdown("---")
     st.markdown("**Status:** Workspace Connected ✅")
-    st.markdown("**Engine:** Llama-3.1-8b-Instant")
+    st.markdown("**Execution Engine:** Llama-3.1-8b-Instant")
 
 # ---------------------------------------------------
 # EXECUTIVE CONTAINER OVERVIEW
@@ -159,204 +223,31 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.write("""
-ChatGBM delivers targeted executive guidance spanning Human Resource Management, Strategic Frameworks, 
-Organizational Performance Architecture, Leadership Theory, Talent Acquisition Frameworks, and Core Analytics.
-""")
-
-st.markdown("---")
-
 # ---------------------------------------------------
-# MODULE LOGIC: CHATBOT & PDF CONTEXT ASSISTANT
+# MODULE LOGIC: INTERACTIVE MENTOR & DOCUMENT KNOWLEDGE ASSISTANT
 # ---------------------------------------------------
-if module in ["AI Chatbot", "PDF Assistant"]:
+if module in ["Interactive Mentor", "Document Knowledge Assistant"]:
     st.subheader(f"🛠️ Active Workspace: {module}")
-    
-    st.write(
-        "Submit a programmatic operational challenge or conceptual framework question directly to the executive mentor engine below."
-    )
+    st.write("Submit an operational challenge or conceptual framework question directly to the executive mentor engine below.")
 
-    # Document Extraction Layer
-    document_text = ""
-    if module == "PDF Assistant":
-        uploaded_file = st.file_uploader(
-            "Upload Academic Syllabus or PDF Notes",
-            type=["pdf"]
-        )
+    history_key = "chatbot_messages" if module == "Interactive Mentor" else "pdf_messages"
+    active_history = st.session_state[history_key]
 
+    document_content = ""
+    if module == "Document Knowledge Assistant":
+        uploaded_file = st.file_uploader("Upload Academic Syllabus or Reference Notes (PDF Format)", type=["pdf"])
         if uploaded_file is not None:
-            with st.spinner("Extracting text from PDF..."):
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        document_text += text
-                st.success("Target document context successfully extracted and cataloged!")
+            with st.spinner("Parsing target document context..."):
+                file_bytes = uploaded_file.read()
+                document_content = extract_text_from_pdf(file_bytes)
+            if document_content.startswith("Extraction Error:"):
+                st.error(document_content)
+            else:
+                st.success("Target document context successfully extracted and compiled!")
 
-    # UI Context Redraw
-    for message in st.session_state.messages:
+    # Render Historical Discussion Elements Stably
+    for message in active_history:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # Input Capturing Trigger
-    question = st.chat_input("Ask an executive-level management question...")
-
-    if question:
-        st.session_state.messages.append({"role": "user", "content": question})
-        with st.chat_message("user"):
-            st.write(question)
-
-        with st.spinner("Processing deep analysis models..."):
-            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.
-
-Your objective is to thoroughly unpack documents provided by the user. Follow these operational guidelines:
-1. Answer thorough questions directly from the provided source context with exact alignments.
-2. Identify, define, and explain core academic, leadership, and operational management concepts deeply.
-3. Create strategic summaries, clear outlines, and operational takeaways upon request.
-4. Meticulously analyze, compute, and structure any numerical data, financial points, or metrics into structured tables.
-5. INFOGRAPHICS AND VISUALS: If asked to build an infographic or visual blueprint, output custom text markdown layouts, formatted comparison tables, structured code-block flowcharts, or markdown badge trees to present a spectacular infographic outline within the text."""
-            
-            user_content = question
-            if module == "PDF Assistant" and document_text:
-                safe_context = document_text[:12000]
-                if len(document_text) > 12000:
-                    safe_context += "\n\n[Context shortened to keep the API payload within token limits...]"
-                
-                user_content = f"Use the following document text reference to fully answer the question:\n\n[REFERENCE CONTENT]:\n{safe_context}\n\n[USER PROMPT]:\n{question}"
-
-            try:
-                completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ]
-                )
-                response = completion.choices[0].message.content
-            except Exception as api_err:
-                response = f"An API transaction issue occurred: {str(api_err)}"
-
-        with st.chat_message("assistant"):
-            st.write(response)
-        
-        st.session_state.messages.append({"role": "assistant", "content": response})
-
-# ---------------------------------------------------
-# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR
-# ---------------------------------------------------
-if module == "AI Interview Simulator":
-    st.subheader("🎯 Core Competency Interview Simulator")
-    st.write("Practice scenario-based structural hiring sequences. Complete evaluation prompts to access analytical review matrices.")
-
-    role = st.selectbox(
-        "Target Assessment Tracks",
-        ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
-    )
-
-    if st.button("Generate Interview Question", type="primary"):
-        with st.spinner("Synthesizing specialized interview track scenarios..."):
-            completion = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": "You are a Chief Human Resources Officer conducting a leadership evaluation interview."},
-                    {"role": "user", "content": f"Generate one highly comprehensive, context-driven behavioral evaluation question for a prospective {role}."}
-                ]
-            )
-            st.session_state.interview_question = completion.choices[0].message.content
-
-    # Display question if generated
-    if st.session_state.interview_question:
-        st.info(st.session_state.interview_question)
-
-    # FIXED: Replaced standard tracking with fixed state tracking key to prevent text field vanishing act
-    answer = st.text_area(
-        "Provide Professional Narrative Response:",
-        value=st.session_state.interview_answer,
-        key="persistent_interview_input"
-    )
-    st.session_state.interview_answer = answer
-
-    if st.button("Analyze & Evaluate Performance"):
-        if not st.session_state.interview_answer.strip():
-            st.warning("Please submit a textual response prior to analysis execution.")
-        else:
-            with st.spinner("Synthesizing quantitative score matrices..."):
-                evaluation = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "Evaluate the provided interview response framework strictly. Provide precise marks on: Communication Clarity /10, Domain Concept Application /10, and Analytical Delivery /10. List notable Candidate Strengths, Key Areas of Development, and a firm overall placement recommendation."
-                        },
-                        {"role": "user", "content": st.session_state.interview_answer}
-                    ]
-                )
-                st.success("Analysis Cycle Matrix Finished")
-                st.markdown(evaluation.choices[0].message.content)
-
-# ---------------------------------------------------
-# MODULE LOGIC: AI IMAGE GENERATOR
-# ---------------------------------------------------
-if module == "AI Image Generator":
-    st.subheader("🎨 AI Creative Concept & Image Generator")
-    st.write("Convert operational frameworks, layout concepts, or visual requirements into images using Flux synthesis technology.")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        aspect_ratio = st.selectbox(
-            "Select Aspect Ratio Configuration", 
-            ["1:1 (Square)", "16:9 (Widescreen)", "4:3 (Standard)"]
-        )
-    with col2:
-        enhance_prompt = st.checkbox(
-            "Automatically enhance description details for professional high-contrast delivery", 
-            value=True
-        )
-
-    # FIXED: Used an explicit high-visibility text layout bar anchored with a permanent state layout key
-    prompt_input = st.text_input(
-        "Describe the image asset layout you want to create:",
-        value=st.session_state.image_prompt_value,
-        placeholder="Type a corporate theme concept, e.g., 'A modern analytics chart workflow layout, clean vector design'",
-        key="persistent_image_input"
-    )
-    st.session_state.image_prompt_value = prompt_input
-
-    if st.button("Generate AI Image Asset", type="primary"):
-        if not st.session_state.image_prompt_value.strip():
-            st.warning("Please enter a text description before clicking generate.")
-        else:
-            with st.spinner("Synthesizing visual canvas matrix... Please wait."):
-                final_prompt = st.session_state.image_prompt_value
-                if enhance_prompt:
-                    final_prompt += ", professional clean corporate aesthetic, masterwork graphic illustration, highly detailed, high contrast"
-                
-                # Configuration matrices for dimensions
-                width, height = 1024, 1024
-                if aspect_ratio == "16:9 (Widescreen)":
-                    width, height = 1920, 1080
-                elif aspect_ratio == "4:3 (Standard)":
-                    width, height = 1280, 960
-
-                # Safely parse text payload values for URL encoding
-                encoded_prompt = urllib.parse.quote(final_prompt)
-                
-                # Rendering endpoint link layer
-                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&model=flux"
-                
-                st.markdown("### 🖼️ Generated Visual Output Artifact")
-                
-                # HTML image layout wrapper
-                st.markdown(
-                    f'<div style="text-align: center; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; background: white;">'
-                    f'  <img src="{generation_url}" style="max-width: 100%; border-radius: 6px;" alt="AI Generated Graphic" />'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-                st.success("Image compiled and displayed successfully!")
-
-# ---------------------------------------------------
-# PERSISTENT FOOTER SECTION
-# ---------------------------------------------------
-st.markdown("---")
-st.caption("ChatGBM Architecture • Built for High Contrast Professional Delivery Tracks")
+    question = st.chat_input("Ask an executive-level
