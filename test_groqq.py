@@ -56,41 +56,4 @@ css_payload = "<style>" \
               "h1 { color: #1E3A8A !important; font-weight: 700 !important; font-size: 2.6rem !important; letter-spacing: -0.03em !important; margin-bottom: 0.5rem !important; } " \
               "h2, h3, h4 { color: #0F172A !important; font-weight: 600 !important; letter-spacing: -0.01em !important; margin-top: 1.8rem !important; margin-bottom: 0.8rem !important; } " \
               ".stMarkdown-container p, .stMarkdown-container li { color: #334155 !important; font-size: 15px !important; line-height: 1.7 !important; } " \
-              ".executive-highlight { background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important; border-left: 6px solid #2563EB !important; padding: 20px !important; border-radius: 8px !important; margin: 24px 0 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); } " \
-              ".executive-highlight p { color: #1E40AF !important; font-weight: 500 !important; margin: 0 !important; font-size: 15px !important; } " \
-              ".stTextArea textarea, .stTextInput input, .stChatInput input { color: #0F172A !important; background-color: #FFFFFF !important; border: 1px solid #CBD5E1 !important; border-radius: 6px !important; padding: 12px !important; } " \
-              "label p { color: #1E293B !important; font-weight: 600 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 0.05em; } " \
-              "footer { visibility: hidden; }" \
-              "</style>"
-
-st.markdown(css_payload, unsafe_allow_html=True)
-
-# ---------------------------------------------------
-# CORE BACKEND ENGINE INITIALIZATION
-# ---------------------------------------------------
-client = OpenAI(
-    api_key=st.secrets["GROQ_API_KEY"],
-    base_url="https://api.groq.com/openai/v1"
-)
-
-try:
-    tts_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-except Exception:
-    tts_client = None
-
-# ---------------------------------------------------
-# SIDEBAR SYSTEM INTERFACE
-# ---------------------------------------------------
-with st.sidebar:
-    st.markdown("### 🎓 **Navigation Panel**")
-    module = st.selectbox(
-        "Select Functional Module",
-        [
-            "Interactive Mentor",
-            "Document Knowledge Assistant",
-            "Strategic Interview Simulator",
-            "Executive Visual Asset Builder"
-        ]
-    )
-    st.markdown("---")
-    st.markdown("**
+              ".executive-highlight { background: linear-gradient(135deg, #EFF6FF 0%, #DB
