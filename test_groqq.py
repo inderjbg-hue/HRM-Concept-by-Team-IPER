@@ -36,6 +36,8 @@ if "current_image_bytes" not in st.session_state:
     st.session_state.current_image_bytes = None
 if "interview_mode" not in st.session_state:
     st.session_state.interview_mode = "Written Narrative Framework"
+if "video_fallback_active" not in st.session_state:
+    st.session_state.video_fallback_active = False
 
 # ---------------------------------------------------
 # STABLE DOCUMENT EXTRACTION CACHE LAYER
@@ -243,26 +245,35 @@ elif module == "Strategic Interview Simulator":
     if st.session_state.interview_mode == "Live Video Presentation Mode":
         st.markdown("### 🎥 Live Executive Presentation Panel")
         
-        # Security & Infrastructure Guideline Alert Box
-        st.warning(
-            "💡 **Camera Troubleshooting:** If the video box below spins infinitely or stays black, verify that: "
-            "1) Your browser address bar begins with **HTTPS://** (security protocol requirement). "
-            "2) You have explicitly permitted camera access to this webpage."
+        # Actionable fallback system if network security blocks WebRTC
+        st.info(
+            "💡 **Network Security Optimization:** If the default video container shows a connection failure "
+            "or stays completely blank, your network firewall is blocking WebRTC. Click below to launch the Native Hardware Link layer."
         )
         
-        webrtc_streamer(
-            key="interview-video-stream",
-            mode=WebRtcMode.SENDRECV,
-            rtc_configuration={
-                "iceServers": [
-                    {"urls": ["stun:stun.l.google.com:19302"]},
-                    {"urls": ["stun:stun1.l.google.com:19302"]}
-                ]
-            },
-            video_frame_callback=video_frame_callback,
-            media_stream_constraints={"video": True, "audio": True},
-            async_processing=True
-        )
+        if st.checkbox("Toggle Native Hardware Backup Camera Link"):
+            st.session_state.video_fallback_active = True
+        else:
+            st.session_state.video_fallback_active = False
+
+        if st.session_state.video_fallback_active:
+            # Native browser component completely avoids WebRTC STUN network block errors
+            st.camera_input("Native Device Video Capture Link Active")
+        else:
+            webrtc_streamer(
+                key="interview-video-stream",
+                mode=WebRtcMode.SENDRECV,
+                rtc_configuration={
+                    "iceServers": [
+                        {"urls": ["stun:stun.l.google.com:19302"]},
+                        {"urls": ["stun:stun1.l.google.com:19302"]},
+                        {"urls": ["stun:stun2.l.google.com:19302"]}
+                    ]
+                },
+                video_frame_callback=video_frame_callback,
+                media_stream_constraints={"video": True, "audio": True},
+                async_processing=True
+            )
 
         st.markdown("### 📝 Response Mapping & Evaluation Context")
         answer = st.text_area(
@@ -311,7 +322,7 @@ elif module == "Executive Visual Asset Builder":
     st.write("Construct professional framework layouts, structural concepts, and data blueprints seamlessly.")
 
     st.markdown("### 🎛️ 1. Define Asset Structure")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     
     with col1:
         layout_style = st.selectbox(
@@ -323,8 +334,6 @@ elif module == "Executive Visual Asset Builder":
             "Corporate Color Architecture",
             ["Modern Tech (Navy, Blue, White Background)", "Executive Classic (Charcoal, Indigo, Gray Background)"]
         )
-    with col3:
-        aspect_ratio = st.selectbox("Canvas Aspect Ratio Target", ["16:9 (Widescreen Presentation)", "1:1 (Square Grid Asset)"])
 
     st.markdown("### 📝 2. Describe Your Core Business Concept")
     user_concept = st.text_input(
@@ -341,24 +350,21 @@ elif module == "Executive Visual Asset Builder":
         else:
             with st.spinner("Compiling structural constraints and canvas matrix layers..."):
                 constructed_prompt = (
-                    f"A crisp corporate {layout_style} depicting: {st.session_state.image_prompt_value}. "
-                    f"Color palette settings: {color_palette}. Flat vector design, minimalist presentation deck layout, production ready."
+                    f"A crisp high-quality corporate vector {layout_style} depicting: {st.session_state.image_prompt_value}. "
+                    f"Color palette: {color_palette}. Flat vector design, minimalist presentation style, presentation deck ready."
                 )
                 
-                width, height = 1024, 1024
-                if "16:9" in aspect_ratio:
-                    width, height = 1280, 720
-
-                # FIXED PATHWAY: Cleaned arguments, dropped unstable custom model string params causing 422/400 errors
                 encoded_prompt = urllib.parse.quote(constructed_prompt)
-                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&nologo=true"
+                
+                # FIXED RESOLUTION PATHWAY: Hardcoded to safe public square format 1024x1024. Bypasses 402 billing blocks completely.
+                generation_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&nologo=true"
                 
                 try:
                     response = requests.get(generation_url, timeout=45)
                     if response.status_code == 200:
                         st.session_state.current_image_bytes = response.content
                     else:
-                        st.error(f"The synthesis engine encountered an line asset generation error exception. (Status Code: {response.status_code})")
+                        st.error(f"The synthesis gateway returned an error (Status Code: {response.status_code}). Please try a shorter description framework.")
                 except Exception as e:
                     st.error(f"Network processing transaction interruption: {str(e)}")
 
