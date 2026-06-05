@@ -1,8 +1,6 @@
 import streamlit as st
 from openai import OpenAI
-import urllib.parse
 import io
-import time
 
 # ---------------------------------------------------
 # PAGE CONFIGURATION
@@ -25,10 +23,6 @@ if "interview_question" not in st.session_state:
     st.session_state.interview_question = ""
 if "interview_answer" not in st.session_state:
     st.session_state.interview_answer = ""
-if "image_prompt_value" not in st.session_state:
-    st.session_state.image_prompt_value = ""
-if "current_image_url" not in st.session_state:
-    st.session_state.current_image_url = None
 if "interview_mode" not in st.session_state:
     st.session_state.interview_mode = "Written Narrative Framework"
 
@@ -261,66 +255,63 @@ elif module == "Strategic Interview Simulator":
 # MODULE LOGIC: EXECUTIVE VISUAL ASSET BUILDER
 # ---------------------------------------------------
 elif module == "Executive Visual Asset Builder":
-    st.subheader("🎨 Executive Visual Asset Builder")
-    st.write("Construct professional framework layouts, structural concepts, and data blueprints seamlessly.")
+    st.subheader("🎨 Executive Visual Matrix Blueprint Builder")
+    st.write("Construct real-time corporate SWOT models and quadrants without any API external network blockers.")
 
-    st.markdown("### 🎛️ 1. Define Asset Structure")
-    col1, col2 = st.columns(2)
+    st.markdown("### 🎛️ Input Matrix Content Parameters")
     
-    with col1:
-        layout_style = st.selectbox(
-            "Visual Blueprint Layout",
-            ["2x2 Strategic Matrix Grid", "Flat Minimalist Infographic Diagram", "Sequential Flowchart Process Map", "Clean Executive Presentation Slide Design"]
-        )
-    with col2:
-        color_palette = st.selectbox(
-            "Corporate Color Architecture",
-            ["Modern Tech (Navy, Blue, White Background)", "Executive Classic (Charcoal, Indigo, Gray Background)"]
-        )
+    # 4 clean distinct inputs for an executive SWOT grid layout mapping
+    col_s, col_w = st.columns(2)
+    with col_s:
+        val_s = st.text_input("💪 Core Internal Strengths (S)", "Internal brand value, unique proprietary technology pipelines.")
+    with col_w:
+        val_w = st.text_input("⏳ Identified Weaknesses (W)", "High overhead infrastructure dependencies, reliance on single supply line hubs.")
 
-    st.markdown("### 📝 2. Describe Your Core Business Concept")
-    user_concept = st.text_input(
-        "What operational model or strategic theme should this asset represent visually?",
-        value=st.session_state.image_prompt_value,
-        key="persistent_image_input",
-        placeholder="e.g., SWOT analysis matrix diagram layout"
-    )
-    st.session_state.image_prompt_value = user_concept
+    col_o, col_t = st.columns(2)
+    with col_o:
+        val_o = st.text_input("🚀 Emerging Market Opportunities (O)", "Expanding vertical channels across growing regional economies.")
+    with col_t:
+        val_t = st.text_input("⚡ Mitigating Risks & Threats (T)", "Socio-political framework changes, accelerating market entry rates.")
 
-    if st.button("Synthesize Executive Visual Asset", type="primary"):
-        if not st.session_state.image_prompt_value.strip():
-            st.warning("Please outline an operational business concept value before launching synthesis models.")
-        else:
-            with st.spinner("Compiling structural constraints and canvas matrix layers..."):
-                # Engine optimized seed mapping to enforce infographic layouts
-                refined_prompt = (
-                    f"Professional business graphic infographic chart, {layout_style}, explicitly detailing: {st.session_state.image_prompt_value}. "
-                    f"Clean corporate design, typography grids, vector layout, sharp edges, readable text, {color_palette} palette, plain solid off-white background."
-                )
-                
-                encoded_string = urllib.parse.quote(refined_prompt)
-                
-                # Append unique UNIX millisecond ticks to break the browser's broken caching layout loop
-                cache_breaker = int(time.time())
-                
-                # Direct public endpoint link mapping
-                st.session_state.current_image_url = f"https://image.pollinations.ai/p/{encoded_string}?width=1024&height=1024&nologo=true&seed={cache_breaker}"
+    st.markdown("---")
+    st.markdown("### 🖼️ Generated Live Dashboard Presentation Canvas")
 
-    if st.session_state.current_image_url:
-        st.markdown("---")
-        st.markdown("### 🖼️ Synthesized Blueprint Output")
-        
-        # Display the live image engine canvas
-        st.image(st.session_state.current_image_url, use_container_width=True)
-        
-        # Failsafe Fallback Strategy: Direct download text button layout
-        st.markdown(f"""
-        <div style="text-align: center; margin-top: 15px;">
-            <p style="color: #475569; font-size: 14px;">⚠️ <strong>Visual Glitch Fallback:</strong> If your local browser is blocking the layout image above, use this direct access key:</p>
-            <a href="{st.session_state.current_image_url}" target="_blank" style="background-color: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; inline-block;">🔗 Open Image Blueprint in New Tab</a>
-        </div>
-        """, unsafe_allow_html=True)
-        st.success("Visual asset blueprint target compiled successfully!")
+    # High fidelity SVG layout drawing vectors. Fast, lightweight, renders crisp text on all displays.
+    svg_canvas = f"""
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" style="width:100%; height:auto; background:#F8FAFC; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-family:'Inter', system-ui, sans-serif;">
+        <!-- STRENGTHS QUADRANT -->
+        <rect x="20" y="20" width="370" height="220" rx="8" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2"/>
+        <text x="40" y="60" font-size="20" font-weight="700" fill="#166534">💪 STRENGTHS (S)</text>
+        <foreignObject x="40" y="85" width="330" height="140">
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#14532D; font-weight:500;">{val_s}</p>
+        </foreignObject>
+
+        <!-- WEAKNESSES QUADRANT -->
+        <rect x="410" y="20" width="370" height="220" rx="8" fill="#FFF5F5" stroke="#FEB2B2" stroke-width="2"/>
+        <text x="430" y="60" font-size="20" font-weight="700" fill="#9B2C2C">⏳ WEAKNESSES (W)</text>
+        <foreignObject x="430" y="85" width="330" height="140">
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#742A2A; font-weight:500;">{val_w}</p>
+        </foreignObject>
+
+        <!-- OPPORTUNITIES QUADRANT -->
+        <rect x="20" y="260" width="370" height="220" rx="8" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2"/>
+        <text x="40" y="300" font-size="20" font-weight="700" fill="#1E40AF">🚀 OPPORTUNITIES (O)</text>
+        <foreignObject x="40" y="325" width="330" height="140">
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#1E3A8A; font-weight:500;">{val_o}</p>
+        </foreignObject>
+
+        <!-- THREATS QUADRANT -->
+        <rect x="410" y="260" width="370" height="220" rx="8" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2"/>
+        <text x="430" y="300" font-size="20" font-weight="700" fill="#92400E">⚡ THREATS (T)</text>
+        <foreignObject x="430" y="325" width="330" height="140">
+            <p style="margin:0; font-size:14px; line-height:1.6; color:#78350F; font-weight:500;">{val_t}</p>
+        </foreignObject>
+    </svg>
+    """
+    
+    # Inject directly into the Streamlit app view
+    st.markdown(svg_canvas, unsafe_allow_html=True)
+    st.success("Executive SWOT Asset Vector Layout rendered live below panel!")
 
 # ---------------------------------------------------
 # PERSISTENT FOOTER SECTION
