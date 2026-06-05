@@ -105,12 +105,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# [Logic for Mentor, Knowledge Assistant, and Simulator modules remains unchanged here...]
+# ---------------------------------------------------
+# MODULE LOGIC: INTERACTIVE MENTOR & DOCUMENT KNOWLEDGE ASSISTANT
+# ---------------------------------------------------
 if module in ["Interactive Mentor", "Document Knowledge Assistant"]:
     st.subheader(f"🛠️ Active Workspace: {module}")
     st.write("Submit an operational challenge or conceptual framework question directly to the executive mentor engine below.")
+
     history_key = "chatbot_messages" if module == "Interactive Mentor" else "pdf_messages"
     active_history = st.session_state[history_key]
+
     document_content = ""
     if module == "Document Knowledge Assistant":
         uploaded_file = st.file_uploader("Upload Academic Syllabus or Reference Notes (PDF Format)", type=["pdf"])
@@ -122,76 +126,134 @@ if module in ["Interactive Mentor", "Document Knowledge Assistant"]:
                 st.error(document_content)
             else:
                 st.success("Target document context successfully extracted and compiled!")
+
     for message in active_history:
         with st.chat_message(message["role"]):
             st.write(message["content"])
+
     question = st.chat_input("Ask an executive-level management question...")
+
     if question:
         active_history.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.write(question)
+
         with st.spinner("Processing analytical framework compilation..."):
-            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor."""
+            system_prompt = """You are an expert Data-Driven Human Resource Management Professor and Executive MBA Mentor.
+Follow these operational guidelines strictly:
+1. Answer clear questions directly from provided source context with exact structural alignments.
+2. Structure summaries, matrices, financial numbers, or metrics into clean markdown tables when requested."""
+            
             user_payload = question
             if module == "Document Knowledge Assistant" and document_content:
                 safe_context = document_content[:12000]
                 user_payload = f"Context:\n{safe_context}\n\nQuestion:\n{question}"
+
             try:
                 completion = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
-                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_payload}]
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_payload}
+                    ]
                 )
                 response = completion.choices[0].message.content
             except Exception as api_err:
-                response = f"An error occurred: {str(api_err)}"
+                response = f"An issue occurred: {str(api_err)}"
+
         with st.chat_message("assistant"):
             st.write(response)
+        
         active_history.append({"role": "assistant", "content": response})
         st.session_state[history_key] = active_history
 
+# ---------------------------------------------------
+# MODULE LOGIC: STRATEGIC INTERVIEW SIMULATOR
+# ---------------------------------------------------
 elif module == "Strategic Interview Simulator":
     st.subheader("🎯 Core Competency Interview Simulator")
+    st.write("Practice scenario-based hiring sequences using written responses or live webcam evaluation presentations.")
+
     col_track, col_mode = st.columns(2)
     with col_track:
-        role = st.selectbox("Target Assessment Tracks", ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"])
+        role = st.selectbox(
+            "Target Assessment Tracks",
+            ["HR Executive", "Marketing Executive", "Finance Executive", "MBA Graduate", "Business Analyst"]
+        )
     with col_mode:
-        st.session_state.interview_mode = st.radio("Select Response Framework", ["Written Narrative Framework", "Live Video Presentation Mode"], horizontal=True)
+        st.session_state.interview_mode = st.radio(
+            "Select Response Framework",
+            ["Written Narrative Framework", "Live Video Presentation Mode"],
+            horizontal=True
+        )
+
     if st.button("Generate Interview Assessment Scenario", type="primary"):
         with st.spinner("Synthesizing specialized interview track scenarios..."):
             try:
                 completion = client.chat.completions.create(
                     model="llama-3.1-8b-instant",
-                    messages=[{"role": "system", "content": "You are a CHRO."}, {"role": "user", "content": f"Generate a question for {role}."}]
+                    messages=[
+                        {"role": "system", "content": "You are a Chief Human Resources Officer conducting an executive evaluation interview."},
+                        {"role": "user", "content": f"Generate one context-driven behavioral evaluation question for a prospective {role}."}
+                    ]
                 )
                 st.session_state.interview_question = completion.choices[0].message.content
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"Error connecting to analytical models: {str(e)}")
+
     if st.session_state.interview_question:
         st.info(f"**Interviewer Assessment Prompt:** {st.session_state.interview_question}")
+
     st.markdown("---")
+
     if st.session_state.interview_mode == "Live Video Presentation Mode":
-        img_file = st.camera_input("Verify Executive Camera Feed Connection")
-        answer = st.text_area("Provide summary frame of your video answer:", value=st.session_state.interview_answer, key="persistent_interview_input")
+        st.markdown("### 🎥 Live Executive Presentation Panel")
+        
+        img_file = st.camera_input("Capture/Verify Executive Camera Feed Connection")
+        if img_file is not None:
+            st.success("Camera feed linked successfully! Proceed with framing your verbal response below.")
+
+        st.markdown("### 📝 Response Mapping & Evaluation Context")
+        answer = st.text_area(
+            "Provide brief talking points or a full summary frame of your video answer for metric evaluation parsing:",
+            value=st.session_state.interview_answer,
+            key="persistent_interview_input"
+        )
         st.session_state.interview_answer = answer
+
     else:
-        answer = st.text_area("Provide Professional Written Response Architecture:", value=st.session_state.interview_answer, key="persistent_interview_input")
+        st.markdown("### 📝 Written Narrative Framework Panel")
+        answer = st.text_area(
+            "Provide Professional Written Response Architecture:",
+            value=st.session_state.interview_answer,
+            key="persistent_interview_input",
+            placeholder="Document your comprehensive STAR-method framework response parameters here..."
+        )
         st.session_state.interview_answer = answer
+
     if st.button("Execute Performance Analysis Matrix"):
         if not st.session_state.interview_answer.strip():
-            st.warning("Please submit a response.")
+            st.warning("Please submit a structured text summary framework prior to running analytical matrices.")
         else:
             with st.spinner("Analyzing performance score indicators..."):
                 try:
                     evaluation = client.chat.completions.create(
                         model="llama-3.1-8b-instant",
-                        messages=[{"role": "system", "content": "Evaluate response."}, {"role": "user", "content": f"Candidate Response: {st.session_state.interview_answer}"}]
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "Evaluate the interview response framework rigorously. Provide exact scoring components out of 10 for: Communication Clarity, Domain Mastery, and Executive Presence. Conclude with notable Candidate Strengths and Key Areas of Development."
+                            },
+                            {"role": "user", "content": f"Question asked: {st.session_state.interview_question}\nCandidate Response: {st.session_state.interview_answer}"}
+                        ]
                     )
+                    st.success("Analysis Cycle Matrix Finished")
                     st.markdown(evaluation.choices[0].message.content)
                 except Exception as e:
-                    st.error(f"Error: {str(e)}")
+                    st.error(f"Error compiling performance data elements: {str(e)}")
 
 # ---------------------------------------------------
-# MODIFIED MODULE LOGIC: EXECUTIVE VISUAL ASSET BUILDER (FLOWCHART RENDERING ENGINE)
+# MODULE LOGIC: EXECUTIVE VISUAL ASSET BUILDER (FLOWCHART RENDERING ENGINE)
 # ---------------------------------------------------
 elif module == "Executive Visual Asset Builder":
     st.subheader("🎨 Executive Visual Flowchart & Asset Builder")
@@ -233,10 +295,9 @@ elif module == "Executive Visual Asset Builder":
                 )
                 
                 mermaid_code = response.choices[0].message.content.strip()
-                # Safe filtering if model uses standard code fences anyway
+                # Fixed string literal split syntax
                 if "```" in mermaid_code:
-                    mermaid_code = mermaid_code.split("
-```")[1].replace("mermaid", "").strip()
+                    mermaid_code = mermaid_code.split("```")[1].replace("mermaid", "").strip()
 
                 # Build an isolated, secure HTML iframe payload to inject Mermaid.js CDN and draw clean canvas shapes
                 html_canvas = f"""
